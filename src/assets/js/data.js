@@ -5,42 +5,7 @@ export default [
       {
         name: "夸克盘搜",
         url: "https://pan.quark.cn/",
-        icon: "https://lf1-cdn-tos.bytescm.com/obj/static/xitu_jue/img/favicon.ico", // 夸克相关可用图标
-      },
-      {
-        name: "阿里盘搜",
-        url: "https://www.aliyundrive.com/",
-        icon: "https://www.aliyundrive.com/favicon.ico", // 官方可用图标
-      },
-      {
-        name: "网盘资源论坛",
-        url: "https://www.115.com/",
-        icon: "https://www.115.com/favicon.ico", // 官方可用图标
-      },
-      {
-        name: "软件资源",
-        url: "https://soft.onlinedown.net/",
-        icon: "https://soft.onlinedown.net/favicon.ico", // 官方可用图标
-      },
-      {
-        name: "哔哩哔哩",
-        url: "https://www.bilibili.com/",
-        icon: "https://www.bilibili.com/favicon.ico",
-      },
-      {
-        name: "网易云音乐",
-        url: "https://music.163.com/",
-        icon: "https://music.163.com/favicon.ico",
-      },
-      {
-        name: "微信文件传输助手",
-        url: "https://wx.qq.com/",
-        icon: "https://res.wx.qq.com/a/wx_fed/assets/res/NTI4MWU5.ico", // 微信官方可用图标
-      },
-      {
-        name: "抖音",
-        url: "https://www.douyin.com/",
-        icon: "https://www.douyin.com/favicon.ico",
+        icon: "kuake_14.png",
       },
     ],
   },
@@ -50,32 +15,32 @@ export default [
       {
         name: "阿里盘搜",
         url: "https://www.aliyundrive.com/",
-        icon: "https://www.aliyundrive.com/favicon.ico",
+        icon: "ali_39.png",
       },
       {
         name: "夸克盘搜",
         url: "https://pan.quark.cn/",
-        icon: "https://lf1-cdn-tos.bytescm.com/obj/static/xitu_jue/img/favicon.ico",
+        icon: "kuake_14.png",
       },
       {
         name: "迅雷盘搜",
         url: "https://pan.xunlei.com/",
-        icon: "https://pan.xunlei.com/favicon.ico", // 官方可用图标
+        icon: "xunlei_24.png",
       },
       {
         name: "UC云搜",
         url: "https://www.uc.cn/",
-        icon: "https://www.uc.cn/favicon.ico", // 官方可用图标
+        icon: "UC_25.png",
       },
       {
         name: "天翼搜",
         url: "https://cloud.189.cn/",
-        icon: "https://cloud.189.cn/favicon.ico", // 官方可用图标
+        icon: "tianyi_26.png",
       },
       {
         name: "百度云搜",
         url: "https://pan.baidu.com/",
-        icon: "https://pan.baidu.com/favicon.ico",
+        icon: "baidu_27.png",
       },
     ],
   },
@@ -85,47 +50,47 @@ export default [
       {
         name: "DeepSeek",
         url: "https://www.deepseek.com/",
-        icon: "https://www.deepseek.com/favicon.ico", // 官方可用图标
+        icon: "DeepSeek_29.png",
       },
       {
         name: "豆包",
         url: "https://www.doubao.com/",
-        icon: "https://www.doubao.com/favicon.ico",
+        icon: "download.png",
       },
       {
         name: "文心一言",
         url: "https://yiyan.baidu.com/",
-        icon: "https://yiyan.baidu.com/favicon.ico",
+        icon: "wenxinyiyan_30.png",
       },
       {
         name: "Kimi",
         url: "https://kimi.moonshot.cn/",
-        icon: "https://kimi.moonshot.cn/favicon.ico", // 官方可用图标
+        icon: "Kimi_31.png",
       },
       {
         name: "通义千问",
         url: "https://qianwen.aliyun.com/",
-        icon: "https://qianwen.aliyun.com/favicon.ico",
+        icon: "tongyiqianwen_32.png",
       },
       {
         name: "腾讯元宝",
         url: "https://yuanbao.tencent.com/",
-        icon: "https://yuanbao.tencent.com/favicon.ico", // 官方可用图标
+        icon: "tengxunyuanbao_33.png",
       },
       {
         name: "Gemini",
         url: "https://gemini.google.com/",
-        icon: "https://www.google.com/favicon.ico", // Google官方图标
+        icon: "Gemini_34.png",
       },
       {
         name: "ChatGPT",
         url: "https://chat.openai.com/",
-        icon: "https://chat.openai.com/favicon.ico",
+        icon: "ChatGPT_35.png",
       },
       {
         name: "Claude",
         url: "https://claude.ai/",
-        icon: "https://claude.ai/favicon.ico", // 官方可用图标
+        icon: "Claude_36.png",
       },
     ],
   },
@@ -135,42 +100,42 @@ export default [
       {
         name: "百度网盘",
         url: "https://pan.baidu.com/",
-        icon: "https://pan.baidu.com/favicon.ico",
+        icon: "baidu_27.png",
       },
       {
         name: "阿里云盘",
         url: "https://www.aliyundrive.com/",
-        icon: "https://www.aliyundrive.com/favicon.ico",
+        icon: "ali_39.png",
       },
       {
         name: "夸克网盘",
         url: "https://pan.quark.cn/",
-        icon: "https://lf1-cdn-tos.bytescm.com/obj/static/xitu_jue/img/favicon.ico",
+        icon: "kuake_14.png",
       },
       {
         name: "迅雷云盘",
         url: "https://pan.xunlei.com/",
-        icon: "https://pan.xunlei.com/favicon.ico",
+        icon: "xunlei_24.png",
       },
       {
         name: "天翼云盘",
         url: "https://cloud.189.cn/",
-        icon: "https://cloud.189.cn/favicon.ico",
+        icon: "tianyi_26.png",
       },
       {
         name: "UC网盘",
         url: "https://www.uc.cn/",
-        icon: "https://www.uc.cn/favicon.ico",
+        icon: "UC_25.png",
       },
       {
         name: "蓝奏云",
         url: "https://www.lanzou.com/",
-        icon: "https://www.lanzou.com/favicon.ico", // 官方可用图标
+        icon: "icon-lanzou00.png",
       },
       {
         name: "OneDrive",
         url: "https://onedrive.live.com/",
-        icon: "https://onedrive.live.com/favicon.ico",
+        icon: "icon-OneDrive00.png",
       },
     ],
   },
@@ -180,52 +145,52 @@ export default [
       {
         name: "微博",
         url: "https://weibo.com/",
-        icon: "https://weibo.com/favicon.ico",
+        icon: "icon-weibo.png",
       },
       {
         name: "百度贴吧",
         url: "https://tieba.baidu.com/",
-        icon: "https://tieba.baidu.com/favicon.ico",
+        icon: "icon-tieba00.png",
       },
       {
         name: "简书",
         url: "https://www.jianshu.com/",
-        icon: "https://www.jianshu.com/favicon.ico",
+        icon: "icon-jianshu.png",
       },
       {
         name: "知乎",
         url: "https://www.zhihu.com/",
-        icon: "https://www.zhihu.com/favicon.ico",
+        icon: "zhuhu.png",
       },
       {
         name: "豆瓣",
         url: "https://www.douban.com/",
-        icon: "https://www.douban.com/favicon.ico",
+        icon: "icon-douban.png",
       },
       {
         name: "QQ邮箱",
         url: "https://mail.qq.com/",
-        icon: "https://mail.qq.com/favicon.ico",
+        icon: "icon-qqmail00.png",
       },
       {
         name: "Gmail",
         url: "https://mail.google.com/",
-        icon: "https://mail.google.com/favicon.ico",
+        icon: "icon-gmail.png",
       },
       {
         name: "网易邮箱",
         url: "https://mail.163.com/",
-        icon: "https://mail.163.com/favicon.ico",
+        icon: "icon-yjwj00.png",
       },
       {
         name: "今日头条",
         url: "https://www.toutiao.com/",
-        icon: "https://www.toutiao.com/favicon.ico",
+        icon: "toutiao.png",
       },
       {
         name: "小红书",
         url: "https://www.xiaohongshu.com/",
-        icon: "https://s.xiaohongshu.com/favicon.ico", // 小红书官方可用图标
+        icon: "xiaohongshu_58.png", //
       },
     ],
   },
@@ -235,87 +200,52 @@ export default [
       {
         name: "腾讯视频",
         url: "https://v.qq.com/",
-        icon: "https://v.qq.com/favicon.ico",
+        icon: "icon-tengxunshipin.png",
       },
       {
         name: "优酷",
         url: "https://www.youku.com/",
-        icon: "https://www.youku.com/favicon.ico",
+        icon: "icon-youku.png",
       },
       {
         name: "爱奇艺",
         url: "https://www.iqiyi.com/",
-        icon: "https://www.iqiyi.com/favicon.ico",
+        icon: "icon-aiqiyi.png",
       },
       {
         name: "哔哩哔哩",
         url: "https://www.bilibili.com/",
-        icon: "https://www.bilibili.com/favicon.ico",
+        icon: "icon-bili.png",
       },
       {
         name: "CCTV直播",
         url: "https://tv.cctv.com/",
-        icon: "https://tv.cctv.com/favicon.ico", // 官方可用图标
+        icon: "icon-cctv.png",
       },
       {
         name: "抖音网页版",
         url: "https://www.douyin.com/",
-        icon: "https://www.douyin.com/favicon.ico",
+        icon: "icon-douyin00.png",
       },
       {
         name: "网易云音乐",
         url: "https://music.163.com/",
-        icon: "https://music.163.com/favicon.ico",
+        icon: "wangyiyun_18.png",
       },
       {
         name: "QQ音乐",
         url: "https://y.qq.com/",
-        icon: "https://y.qq.com/favicon.ico",
+        icon: "icon-qqmusic00.png",
       },
       {
         name: "虎牙直播",
         url: "https://www.huya.com/",
-        icon: "https://www.huya.com/favicon.ico",
+        icon: "icon-huya00.png",
       },
       {
         name: "斗鱼直播",
         url: "https://www.douyu.com/",
-        icon: "https://www.douyu.com/favicon.ico",
-      },
-    ],
-  },
-  {
-    category: "游戏娱乐",
-    sites: [
-      {
-        name: "4399小游戏",
-        url: "https://www.4399.com/",
-        icon: "https://www.4399.com/favicon.ico",
-      },
-      {
-        name: "英雄联盟",
-        url: "https://lol.qq.com/",
-        icon: "https://lol.qq.com/favicon.ico",
-      },
-      {
-        name: "永劫无间",
-        url: "https://www.yjwjol.com/",
-        icon: "https://www.yjwjol.com/favicon.ico", // 官方可用图标
-      },
-      {
-        name: "STEAM",
-        url: "https://store.steampowered.com/",
-        icon: "https://store.steampowered.com/favicon.ico",
-      },
-      {
-        name: "王者荣耀",
-        url: "https://pvp.qq.com/",
-        icon: "https://pvp.qq.com/favicon.ico",
-      },
-      {
-        name: "3DM GAME",
-        url: "https://www.3dmgame.com/",
-        icon: "https://www.3dmgame.com/favicon.ico",
+        icon: "icon-douyu00.png",
       },
     ],
   },
@@ -325,47 +255,52 @@ export default [
       {
         name: "在线工具",
         url: "https://tool.lu/",
-        icon: "https://tool.lu/favicon.ico",
+        icon: "icon-ai-tool.png",
       },
       {
         name: "IP查询",
         url: "https://www.ip.cn/",
-        icon: "https://www.ip.cn/favicon.ico", // 官方可用图标
+        icon: "icon-wangluo.png",
       },
       {
         name: "文档在线转换",
         url: "https://smallpdf.com/cn",
-        icon: "https://smallpdf.com/favicon.ico",
+        icon: "icon-docto.png",
       },
       {
         name: "谷歌翻译",
         url: "https://translate.google.com/",
-        icon: "https://translate.google.com/favicon.ico",
+        icon: "icon-fanyi.png",
       },
       {
         name: "有道翻译",
         url: "https://fanyi.youdao.com/",
-        icon: "https://fanyi.youdao.com/favicon.ico",
+        icon: "icon-youdao00.png",
       },
       {
         name: "MD编辑器",
         url: "https://stackedit.io/",
-        icon: "https://stackedit.io/favicon.ico",
+        icon: "icon-md.png",
       },
       {
         name: "在线代码格式化",
         url: "https://beautifier.io/",
-        icon: "https://beautifier.io/favicon.ico", // 官方可用图标
+        icon: "icon-base64.png",
       },
       {
         name: "站长工具",
         url: "https://tool.chinaz.com/",
-        icon: "https://tool.chinaz.com/favicon.ico",
+        icon: "icon-zhanzhang00.png",
+      },
+      {
+        name: "js混淆器",
+        url: "https://tool.chinaz.com/tools/jscodeconfusion.aspx",
+        icon: "icon-jshunxiao.png",
       },
       {
         name: "ICP备案查询",
         url: "https://beian.miit.gov.cn/",
-        icon: "https://beian.miit.gov.cn/favicon.ico", // 官方可用图标
+        icon: "icon-icp00.png",
       },
     ],
   },
@@ -374,38 +309,78 @@ export default [
     sites: [
       {
         name: "W3school",
-        url: "https://www.w3school.com.cn/",
-        icon: "https://www.w3school.com.cn/favicon.ico",
+        url: "http://www.w3school.com.cn/",
+        icon: "icon-html00.png",
       },
       {
         name: "Github",
         url: "https://github.com/",
-        icon: "https://github.com/favicon.ico",
+        icon: "icon-github.png",
       },
       {
         name: "码云Gitee",
         url: "https://gitee.com/",
-        icon: "https://gitee.com/favicon.ico",
+        icon: "icon-gitee00.png",
+      },
+      {
+        name: "Linux命令查询",
+        url: "https://linux.lylme.com/",
+        icon: "icon-linux.png",
       },
       {
         name: "CSDN",
         url: "https://www.csdn.net/",
-        icon: "https://www.csdn.net/favicon.ico",
+        icon: "icon-csdn.png",
+      },
+      {
+        name: "CdnJs",
+        url: "https://cdnjs.com/",
+        icon: "icon-cdnjs.png",
+      },
+      {
+        name: "字节跳动CDN",
+        url: "https://cdn.bytedance.com/",
+        icon: "icon-zjtd00.png",
       },
       {
         name: "Font Awesome",
-        url: "https://fontawesome.com/",
-        icon: "https://fontawesome.com/favicon.ico",
+        url: "https://fontawesome.com/icons?https://fontawesome.com/",
+        icon: "icon-font-awesome.png",
+      },
+      {
+        name: "MSDN我告诉你",
+        url: "https://msdn.itellyou.cn/",
+        icon: "icon-msdn00.png",
       },
       {
         name: "腾讯云",
         url: "https://cloud.tencent.com/",
-        icon: "https://cloud.tencent.com/favicon.ico",
+        icon: "icon-qcloud00.png",
       },
       {
         name: "阿里云",
         url: "https://www.aliyun.com/",
-        icon: "https://www.aliyun.com/favicon.ico",
+        icon: "icon-alicloud00.png",
+      },
+    ],
+  },
+  {
+    category: "游戏娱乐",
+    sites: [
+      {
+        name: "4399小游戏",
+        url: "https://www.4399.com/",
+        icon: "icon-439900.png",
+      },
+      {
+        name: "STEAM",
+        url: "https://store.steampowered.com/",
+        icon: "icon-steam00.png",
+      },
+      {
+        name: "3DM GAME",
+        url: "https://www.3dmgame.com/",
+        icon: "icon-games00.png",
       },
     ],
   },

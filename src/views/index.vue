@@ -106,7 +106,11 @@
                 :title="site.name"
               >
                 <div class="site_icon">
-                  <img :src="site.icon" :alt="site.name" class="favicon" />
+                  <img
+                    :src="require(`@/assets/images/${site.icon}`)"
+                    :alt="site.name"
+                    class="favicon"
+                  />
                 </div>
                 <span class="site_name">{{ site.name }}</span>
               </a>
