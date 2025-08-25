@@ -16,23 +16,37 @@
           <p></p>
         </div>
 
-        <!-- 搜索框与搜索引擎选择 -->
+        <!-- 搜索框与搜索引擎选择（优化：按钮组放在搜索框上方） -->
         <div class="search_container">
+          <!-- 1. 搜索引擎按钮组（新增） -->
+          <div class="engine_buttons">
+            <!-- 本地资源搜索按钮（默认选中） -->
+            <button 
+              class="engine_btn" 
+              :class="{ active: selectedEngine === 'local' }"
+              @click="selectedEngine = 'local'"
+            >
+              <i class="fa fa-database" aria-hidden="true"></i> 本地资源
+            </button>
+            <!-- 第三方搜索引擎按钮 -->
+            <button 
+              v-for="engine in searchEngines" 
+              :key="engine.id"
+              class="engine_btn"
+              :class="{ active: selectedEngine === engine.id }"
+              @click="selectedEngine = engine.id"
+            >
+              <i :class="`fa fa-${engine.icon}`" aria-hidden="true"></i> {{ engine.name }}
+            </button>
+          </div>
+
+          <!-- 2. 搜索框（位置下移） -->
           <div class="search_box">
-            <select v-model="selectedEngine" class="engine_select">
-              <option
-                v-for="engine in searchEngines"
-                :key="engine.id"
-                :value="engine"
-              >
-                {{ engine.name }}
-              </option>
-            </select>
             <input
               type="text"
               v-model="searchQuery"
               @keyup.enter="handleSearch"
-              placeholder="搜索内容..."
+              placeholder="搜索本地资源或网络内容..."
               class="search_input"
             />
             <button class="search_btn" @click="handleSearch">
@@ -77,45 +91,96 @@
         </div>
       </header>
 
-      <!-- 主要内容区域 -->
+      <!-- 主要内容区域（新增：本地搜索结果展示区） -->
       <main class="main_content">
-        <!-- 遍历所有分类 -->
-        <div
-          v-for="(category, catIndex) in navigationData"
-          :key="catIndex"
-          class="category_card"
+        <!-- 本地搜索结果（有搜索词且选中本地资源时显示） -->
+        <div 
+          class="local_search_result" 
+          v-if="searchQuery && selectedEngine === 'local' && localSearchResult.length"
         >
-          <!-- 分类标题 -->
-          <div class="category_title">
-            <i class="fa fa-folder-open" aria-hidden="true"></i>
-            <h2>{{ category.category }}</h2>
-            <span class="count">{{ category.sites.length }}</span>
+          <div class="result_title">
+            <i class="fa fa-search" aria-hidden="true"></i>
+            <h2>本地搜索结果：{{ searchQuery }}（共{{ localSearchResult.length }}条）</h2>
           </div>
-
-          <!-- 网站链接列表 -->
-          <ul class="site_list">
-            <li
-              v-for="(site, siteIndex) in category.sites"
-              :key="siteIndex"
-              class="site_item"
+          <ul class="result_list">
+            <li 
+              v-for="(item, index) in localSearchResult" 
+              :key="index"
+              class="result_item"
             >
-              <a
-                :href="site.url"
-                target="_blank"
-                class="site_link"
-                :title="site.name"
+              <a 
+                :href="item.url" 
+                target="_blank" 
+                class="result_link"
+                :title="item.name"
               >
-                <div class="site_icon">
-                  <img
-                    :src="require(`@/assets/images/${site.icon}`)"
-                    :alt="site.name"
-                    class="favicon"
-                  />
+                <div class="result_icon">
+                  <img 
+                    :src="require(`@/assets/images/${item.icon}`)" 
+                    :alt="item.name"
+                    class="result_favicon"
+                  >
                 </div>
-                <span class="site_name">{{ site.name }}</span>
+                <div class="result_info">
+                  <div class="result_name">{{ item.name }}</div>
+                  <div class="result_category">分类：{{ item.category }}</div>
+                </div>
               </a>
             </li>
           </ul>
+        </div>
+
+        <!-- 无本地搜索结果提示 -->
+        <div 
+          class="no_result" 
+          v-if="searchQuery && selectedEngine === 'local' && !localSearchResult.length"
+        >
+          <i class="fa fa-info-circle" aria-hidden="true"></i>
+          <p>未找到与「{{ searchQuery }}」相关的本地资源，可切换搜索引擎搜索网络内容</p>
+        </div>
+
+        <!-- 导航分类列表（无搜索词或未选中本地资源时显示） -->
+        <div 
+          v-if="!searchQuery || selectedEngine !== 'local'"
+          class="navigation_list"
+        >
+          <div
+            v-for="(category, catIndex) in navigationData"
+            :key="catIndex"
+            class="category_card"
+          >
+            <!-- 分类标题 -->
+            <div class="category_title">
+              <i class="fa fa-folder-open" aria-hidden="true"></i>
+              <h2>{{ category.category }}</h2>
+              <span class="count">{{ category.sites.length }}</span>
+            </div>
+
+            <!-- 网站链接列表 -->
+            <ul class="site_list">
+              <li
+                v-for="(site, siteIndex) in category.sites"
+                :key="siteIndex"
+                class="site_item"
+              >
+                <a
+                  :href="site.url"
+                  target="_blank"
+                  class="site_link"
+                  :title="site.name"
+                >
+                  <div class="site_icon">
+                    <img
+                      :src="require(`@/assets/images/${site.icon}`)"
+                      :alt="site.name"
+                      class="favicon"
+                    />
+                  </div>
+                  <span class="site_name">{{ site.name }}</span>
+                </a>
+              </li>
+            </ul>
+          </div>
         </div>
       </main>
     </div>
@@ -131,61 +196,89 @@ export default {
     return {
       navigationData,
       searchQuery: "",
-      // 搜索引擎配置
+      // 搜索引擎配置（新增icon字段用于按钮图标）
       searchEngines: [
         {
           id: "baidu",
           name: "百度",
           url: "https://www.baidu.com/s?wd=",
+          icon: "baidu" // 需确保Font Awesome有该图标（若无可替换为"search"）
         },
         {
           id: "google",
           name: "谷歌",
           url: "https://www.google.com/search?q=",
+          icon: "google"
         },
         {
           id: "bing",
           name: "必应",
           url: "https://www.bing.com/search?q=",
+          icon: "bing"
         },
         {
           id: "sougou",
           name: "搜狗",
           url: "https://www.sogou.com/web?query=",
+          icon: "sougou" // 若无该图标可替换为"search"
         },
         {
           id: "360",
           name: "360搜索",
           url: "https://www.so.com/s?q=",
+          icon: "360" // 若无该图标可替换为"search"
         },
       ],
-      selectedEngine: null,
+      selectedEngine: "local", // 默认选中本地资源搜索
+      localSearchResult: [] // 本地搜索结果存储
     };
   },
-  created() {
-    // 默认选择百度搜索引擎
-    this.selectedEngine = this.searchEngines.find(
-      (engine) => engine.id === "baidu"
-    );
-  },
   methods: {
-    // 处理搜索，跳转到对应的搜索引擎
+    // 处理搜索（区分本地搜索和第三方搜索）
     handleSearch() {
-      if (!this.searchQuery.trim() || !this.selectedEngine) return;
+      const query = this.searchQuery.trim();
+      if (!query) return;
 
-      const encodedQuery = encodeURIComponent(this.searchQuery.trim());
-      const searchUrl = this.selectedEngine.url + encodedQuery;
+      // 1. 本地资源搜索（默认）
+      if (this.selectedEngine === "local") {
+        this.searchLocalResources(query);
+      } 
+      // 2. 第三方搜索引擎搜索
+      else {
+        const engine = this.searchEngines.find(item => item.id === this.selectedEngine);
+        if (engine) {
+          const encodedQuery = encodeURIComponent(query);
+          const searchUrl = engine.url + encodedQuery;
+          window.open(searchUrl, "_blank");
+        }
+      }
+    },
 
-      // 跳转到搜索引擎结果页
-      window.open(searchUrl, "_blank");
+    // 搜索本地导航资源（匹配网站名称或分类）
+    searchLocalResources(query) {
+      const result = [];
+      // 遍历所有分类，匹配网站名称包含搜索词的资源
+      this.navigationData.forEach(category => {
+        const matchedSites = category.sites.filter(site => 
+          site.name.toLowerCase().includes(query.toLowerCase())
+        );
+        // 给匹配的网站添加分类信息，便于展示
+        const formattedSites = matchedSites.map(site => ({
+          ...site,
+          category: category.category
+        }));
+        result.push(...formattedSites);
+      });
+      // 存储搜索结果
+      this.localSearchResult = result;
     },
 
     // 使用热门标签搜索
     searchWithText(text) {
       this.searchQuery = text;
       this.handleSearch();
-    },
-  },
+    }
+  }
 };
 </script>
 
@@ -231,7 +324,7 @@ export default {
   padding: 0 20px;
 }
 
-/* 头部样式 */
+/* 头部样式（重点：新增搜索引擎按钮组样式） */
 .header {
   padding: 30px 0;
   text-align: center;
@@ -256,22 +349,51 @@ export default {
     max-width: 800px;
     margin: 0 auto;
 
+    // 1. 搜索引擎按钮组样式（新增）
+    .engine_buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 12px;
+
+      .engine_btn {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border: 1px solid #ddd;
+        border-radius: 20px;
+        background-color: white;
+        color: #333;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s;
+
+        // 选中状态样式
+        &.active {
+          background-color: #4285f4;
+          color: white;
+          border-color: #4285f4;
+        }
+
+        //  hover效果
+        &:hover:not(.active) {
+          border-color: #4285f4;
+          color: #4285f4;
+        }
+
+        i {
+          font-size: 14px;
+        }
+      }
+    }
+
+    // 2. 搜索框样式（移除原下拉框相关样式）
     .search_box {
       display: flex;
       justify-content: center;
       width: 100%;
-
-      .engine_select {
-        background-color: white;
-        border: 2px solid #4285f4;
-        border-right: none;
-        padding: 0 15px;
-        font-size: 16px;
-        border-radius: 6px 0 0 6px;
-        outline: none;
-        color: #333;
-        cursor: pointer;
-      }
 
       .search_input {
         flex: 1;
@@ -279,7 +401,7 @@ export default {
         padding: 0 20px;
         border: 2px solid #4285f4;
         border-right: none;
-        border-left: none;
+        border-radius: 6px 0 0 6px;
         font-size: 16px;
         outline: none;
       }
@@ -337,29 +459,24 @@ export default {
   }
 }
 
-/* 主要内容区域 */
+/* 主要内容区域（新增：本地搜索结果样式） */
 .main_content {
   margin-bottom: 40px;
 
-  .category_card {
+  // 1. 本地搜索结果样式（新增）
+  .local_search_result {
     background-color: white;
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     margin-bottom: 25px;
     overflow: hidden;
-    transition: box-shadow 0.3s;
 
-    &:hover {
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    }
-
-    .category_title {
+    .result_title {
       background-color: #f0f3f9;
       padding: 12px 20px;
       display: flex;
       align-items: center;
       border-bottom: 1px solid #e1e5eb;
-      justify-content: space-between;
 
       i {
         color: #4285f4;
@@ -371,73 +488,187 @@ export default {
         font-size: 18px;
         color: #333;
         font-weight: 600;
-        display: flex;
-        align-items: center;
-      }
-
-      .count {
-        font-size: 14px;
-        color: #666;
-        background-color: rgba(66, 133, 244, 0.1);
-        padding: 2px 8px;
-        border-radius: 12px;
       }
     }
 
-    .site_list {
-      display: flex;
-      flex-wrap: wrap;
+    .result_list {
       padding: 15px 20px;
       list-style: none;
 
-      .site_item {
-        width: 12.5%;
-        padding: 10px 5px;
+      .result_item {
+        padding: 12px 0;
+        border-bottom: 1px solid #f0f0f0;
 
-        .site_link {
+        &:last-child {
+          border-bottom: none;
+        }
+
+        .result_link {
           display: flex;
-          flex-direction: column;
           align-items: center;
           text-decoration: none;
           color: #333;
-          padding: 12px 5px;
-          border-radius: 6px;
           transition: all 0.2s;
-          height: 100%;
-          min-height: 80px;
-          justify-content: center;
 
           &:hover {
-            background-color: #f0f7ff;
             color: #4285f4;
-            transform: translateY(-2px);
           }
 
-          .site_icon {
-            width: 40px;
-            height: 40px;
+          .result_icon {
+            width: 36px;
+            height: 36px;
             background-color: #f0f3f9;
-            border-radius: 8px;
+            border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 8px;
+            margin-right: 12px;
             overflow: hidden;
 
-            .favicon {
-              width: 24px;
-              height: 24px;
+            .result_favicon {
+              width: 20px;
+              height: 20px;
               object-fit: contain;
             }
           }
 
-          .site_name {
-            font-size: 14px;
-            text-align: center;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            width: 100%;
+          .result_info {
+            .result_name {
+              font-size: 16px;
+              margin-bottom: 4px;
+            }
+
+            .result_category {
+              font-size: 12px;
+              color: #666;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // 2. 无搜索结果提示（新增）
+  .no_result {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 40px 20px;
+    text-align: center;
+    margin-bottom: 25px;
+
+    i {
+      color: #4285f4;
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
+
+    p {
+      color: #666;
+      font-size: 16px;
+    }
+  }
+
+  // 3. 原有导航分类样式（保留）
+  .navigation_list {
+    .category_card {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      margin-bottom: 25px;
+      overflow: hidden;
+      transition: box-shadow 0.3s;
+
+      &:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      }
+
+      .category_title {
+        background-color: #f0f3f9;
+        padding: 12px 20px;
+        display: flex;
+        align-items: center;
+        border-bottom: 1px solid #e1e5eb;
+        justify-content: space-between;
+
+        i {
+          color: #4285f4;
+          margin-right: 10px;
+          font-size: 18px;
+        }
+
+        h2 {
+          font-size: 18px;
+          color: #333;
+          font-weight: 600;
+          display: flex;
+          align-items: center;
+        }
+
+        .count {
+          font-size: 14px;
+          color: #666;
+          background-color: rgba(66, 133, 244, 0.1);
+          padding: 2px 8px;
+          border-radius: 12px;
+        }
+      }
+
+      .site_list {
+        display: flex;
+        flex-wrap: wrap;
+        padding: 15px 20px;
+        list-style: none;
+
+        .site_item {
+          width: 12.5%;
+          padding: 10px 5px;
+
+          .site_link {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: #333;
+            padding: 12px 5px;
+            border-radius: 6px;
+            transition: all 0.2s;
+            height: 100%;
+            min-height: 80px;
+            justify-content: center;
+
+            &:hover {
+              background-color: #f0f7ff;
+              color: #4285f4;
+              transform: translateY(-2px);
+            }
+
+            .site_icon {
+              width: 40px;
+              height: 40px;
+              background-color: #f0f3f9;
+              border-radius: 8px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              margin-bottom: 8px;
+              overflow: hidden;
+
+              .favicon {
+                width: 24px;
+                height: 24px;
+                object-fit: contain;
+              }
+            }
+
+            .site_name {
+              font-size: 14px;
+              text-align: center;
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              width: 100%;
+            }
           }
         }
       }
@@ -445,13 +676,15 @@ export default {
   }
 }
 
-/* 响应式调整 */
+/* 响应式调整（新增按钮组适配） */
 @media (max-width: 1200px) {
   .main_content {
-    .category_card {
-      .site_list {
-        .site_item {
-          width: 16.666%;
+    .navigation_list {
+      .category_card {
+        .site_list {
+          .site_item {
+            width: 16.666%;
+          }
         }
       }
     }
@@ -460,10 +693,12 @@ export default {
 
 @media (max-width: 992px) {
   .main_content {
-    .category_card {
-      .site_list {
-        .site_item {
-          width: 20%;
+    .navigation_list {
+      .category_card {
+        .site_list {
+          .site_item {
+            width: 20%;
+          }
         }
       }
     }
@@ -473,20 +708,38 @@ export default {
 @media (max-width: 768px) {
   .header {
     .search_container {
+      // 按钮组适配：减少内边距
+      .engine_buttons {
+        .engine_btn {
+          padding: 4px 10px;
+          font-size: 12px;
+
+          i {
+            font-size: 12px;
+          }
+        }
+      }
+
       .search_box {
-        .engine_select {
-          padding: 0 10px;
+        .search_input {
           font-size: 14px;
+        }
+
+        .search_btn {
+          font-size: 14px;
+          padding: 0 20px;
         }
       }
     }
   }
 
   .main_content {
-    .category_card {
-      .site_list {
-        .site_item {
-          width: 25%;
+    .navigation_list {
+      .category_card {
+        .site_list {
+          .site_item {
+            width: 25%;
+          }
         }
       }
     }
@@ -502,6 +755,11 @@ export default {
     }
 
     .search_container {
+      // 按钮组适配：一行显示不下时自动换行
+      .engine_buttons {
+        gap: 6px;
+      }
+
       .search_box {
         .search_btn {
           span {
@@ -509,19 +767,30 @@ export default {
           }
           padding: 0 15px;
         }
-
-        .engine_select {
-          min-width: 60px;
-        }
       }
     }
   }
 
   .main_content {
-    .category_card {
-      .site_list {
-        .site_item {
-          width: 33.333%;
+    .navigation_list {
+      .category_card {
+        .site_list {
+          .site_item {
+            width: 33.333%;
+          }
+        }
+      }
+    }
+
+    // 本地搜索结果适配
+    .local_search_result {
+      .result_list {
+        .result_item {
+          .result_info {
+            .result_name {
+              font-size: 14px;
+            }
+          }
         }
       }
     }

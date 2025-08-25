@@ -7,6 +7,11 @@ export default [
         url: "https://pan.quark.cn/",
         icon: "kuake_14.png",
       },
+      {
+        name: "百度网盘",
+        url: "https://pan.baidu.com/",
+        icon: "baidu_27.png",
+      },
     ],
   },
   {
