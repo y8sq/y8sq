@@ -11,7 +11,9 @@
   "dependencies": {
     "axios": "^0.27.2",
     "core-js": "^3.8.3",
+    "jimp": "^0.22.12",
     "moment": "^2.29.4",
+    "sharp": "^0.34.5",
     "vue": "^2.6.14",
     "vue-router": "^3.5.1",
     "vuex": "^3.6.2"
