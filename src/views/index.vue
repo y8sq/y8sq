@@ -170,14 +170,18 @@
           class="navigation_list"
         >
           <div
-            v-for="(category, catIndex) in navigationData"
+            v-for="(category, catIndex) in sortedNavigationData"
             :key="catIndex"
             class="category_card"
+            :class="{ 'protected-category': category.protected }"
           >
             <!-- 分类标题 -->
             <div class="category_title">
               <h2>{{ category.category }}</h2>
               <span class="count">{{ category.sites.length }}</span>
+              <span v-if="category.protected" class="protected-badge"
+                >保护</span
+              >
             </div>
 
             <!-- 网站链接列表 -->
@@ -188,6 +192,7 @@
                   : category.sites"
                 :key="siteIndex"
                 class="site_item"
+                :class="{ 'protected-site': site.protected }"
               >
                 <a
                   :href="site.url"
@@ -200,10 +205,14 @@
                     <img :src="site.icon" :alt="site.name" class="favicon" />
                   </div>
                   <span class="site_name">{{ site.name }}</span>
+                  <span v-if="site.protected" class="protected-site-badge"
+                    >保护</span
+                  >
                 </a>
                 <!-- 操作按钮 -->
                 <div class="site_actions">
                   <button
+                    v-if="!site.protected"
                     class="edit_btn"
                     @click.stop="editSite(category, site, siteIndex)"
                     title="编辑"
@@ -211,6 +220,7 @@
                     <i class="fa fa-edit" aria-hidden="true"></i>
                   </button>
                   <button
+                    v-if="!site.protected"
                     class="delete_btn"
                     @click.stop="deleteSite(category, siteIndex)"
                     title="删除"
@@ -276,6 +286,18 @@
                   required
                 />
               </div>
+              <div class="form_group">
+                <label for="sort">排序值</label>
+                <input
+                  type="number"
+                  id="sort"
+                  v-model.number="formData.sort"
+                  placeholder="请输入排序值（数字越小，排序越靠前）"
+                  min="0"
+                  step="1"
+                  required
+                />
+              </div>
               <div class="form_actions">
                 <button type="button" class="cancel_btn" @click="closeModal">
                   取消
@@ -316,13 +338,11 @@
 </template>
 
 <script>
-import navigationData from "@/assets/js/data.js";
-
 export default {
   name: "App",
   data() {
     return {
-      navigationData,
+      navigationData: [],
       searchQuery: "",
       // 搜索引擎配置（新增icon字段用于按钮图标）
       searchEngines: [
@@ -367,10 +387,11 @@ export default {
         name: "",
         url: "",
         icon: "",
+        sort: 0,
       },
       // 搜索历史功能
       searchHistory: [],
-      hotKeywords: ["AI工具", "免费软件", "学习资源", "影视推荐", "游戏下载"],
+      hotKeywords: ["Github", "W3school", "字节跳动CDN", "CSDN", "码云Gitee"],
       // 自定义确认对话框
       showConfirmDialog: false,
       confirmConfig: {
@@ -391,10 +412,30 @@ export default {
       // 使用Set去除重复项，然后转回数组
       return [...new Set(combined)];
     },
+    // 排序后的导航分类
+    sortedNavigationData() {
+      // 对分类进行排序
+      const sortedCategories = [...this.navigationData].sort((a, b) => {
+        // 如果没有sort字段，默认放在后面
+        const sortA = a.sort || 9999;
+        const sortB = b.sort || 9999;
+        return sortA - sortB;
+      });
+
+      // 对每个分类下的网站进行排序
+      return sortedCategories.map((category) => ({
+        ...category,
+        sites: [...category.sites].sort((a, b) => {
+          const sortA = a.sort || 9999;
+          const sortB = b.sort || 9999;
+          return sortA - sortB;
+        }),
+      }));
+    },
   },
   mounted() {
-    // 数据双向同步：检查本地存储数据
-    this.syncData();
+    // 加载导航数据：优先从localStorage，其次从JSON文件
+    this.loadNavigationData();
 
     // 从localStorage恢复菜单状态
     const savedState = localStorage.getItem("navigationState");
@@ -573,10 +614,15 @@ export default {
         name: "",
         url: "",
         icon: "",
+        sort: 0,
       };
     },
     // 编辑网站
     editSite(category, site, index) {
+      if (site.protected || category.protected) {
+        alert("该项目受保护，无法编辑");
+        return;
+      }
       this.editingItem = {
         category: category,
         site: site,
@@ -587,11 +633,16 @@ export default {
         name: site.name,
         url: site.url,
         icon: site.icon,
+        sort: site.sort || 0,
       };
       this.showAddModal = true;
     },
     // 删除网站
     deleteSite(category, index) {
+      if (category.protected || category.sites[index].protected) {
+        alert("该项目受保护，无法删除");
+        return;
+      }
       this.showConfirm({
         title: "删除确认",
         message: "确定要删除这个网站吗？",
@@ -631,7 +682,66 @@ export default {
         name: this.formData.name,
         url: this.formData.url,
         icon: this.formData.icon,
+        sort: this.formData.sort,
+        protected: this.editingItem ? this.editingItem.site.protected : false,
       };
+
+      // 查找目标分类
+      let targetCategory;
+      if (this.editingItem) {
+        // 编辑模式
+        if (this.formData.category === this.editingItem.category.category) {
+          targetCategory = this.editingItem.category;
+        } else {
+          // 分类改变，查找新分类
+          targetCategory = this.navigationData.find(
+            (cat) => cat.category === this.formData.category,
+          );
+          // 如果新分类不存在，创建一个
+          if (!targetCategory) {
+            targetCategory = {
+              category: this.formData.category,
+              sites: [],
+              sort: 0,
+              protected: false,
+            };
+            this.navigationData.push(targetCategory);
+          }
+        }
+      } else {
+        // 新增模式，查找或创建分类
+        targetCategory = this.navigationData.find(
+          (cat) => cat.category === this.formData.category,
+        );
+        if (!targetCategory) {
+          targetCategory = {
+            category: this.formData.category,
+            sites: [],
+            sort: 0,
+            protected: false,
+          };
+          this.navigationData.push(targetCategory);
+        }
+      }
+
+      // 排序值唯一性验证
+      const existingSites = targetCategory.sites;
+      const isDuplicate = existingSites.some((site, index) => {
+        // 编辑模式下排除当前编辑的网站
+        if (
+          this.editingItem &&
+          this.formData.category === this.editingItem.category.category &&
+          index === this.editingItem.index
+        ) {
+          return false;
+        }
+        return site.sort === this.formData.sort;
+      });
+
+      if (isDuplicate) {
+        alert("排序值已存在，请使用不同的排序值");
+        return;
+      }
 
       if (this.editingItem) {
         // 编辑现有数据
@@ -647,20 +757,8 @@ export default {
             );
             this.navigationData.splice(categoryIndex, 1);
           }
-          // 查找或创建新分类
-          let newCategoryIndex = this.navigationData.findIndex(
-            (cat) => cat.category === this.formData.category,
-          );
-          if (newCategoryIndex === -1) {
-            // 创建新分类
-            this.navigationData.push({
-              category: this.formData.category,
-              sites: [siteData],
-            });
-          } else {
-            // 添加到现有分类
-            this.navigationData[newCategoryIndex].sites.push(siteData);
-          }
+          // 添加到新分类
+          targetCategory.sites.push(siteData);
         } else {
           // 只更新网站信息
           category.sites[index] = siteData;
@@ -668,20 +766,8 @@ export default {
         alert("数据更新成功");
       } else {
         // 添加新数据
-        // 查找或创建分类
-        let categoryIndex = this.navigationData.findIndex(
-          (cat) => cat.category === this.formData.category,
-        );
-        if (categoryIndex === -1) {
-          // 创建新分类
-          this.navigationData.push({
-            category: this.formData.category,
-            sites: [siteData],
-          });
-        } else {
-          // 添加到现有分类
-          this.navigationData[categoryIndex].sites.push(siteData);
-        }
+        // 添加到现有分类
+        targetCategory.sites.push(siteData);
         alert("数据添加成功");
       }
 
@@ -840,60 +926,26 @@ export default {
     goToManage() {
       this.$router.push("/manage");
     },
-    // 数据双向同步
-    syncData() {
-      const localData = localStorage.getItem("navigationData");
-      if (!localData) {
-        // 本地存储中不存在数据，将初始数据保存到本地
-        localStorage.setItem(
-          "navigationData",
-          JSON.stringify(this.navigationData),
-        );
-      } else {
-        // 本地存储中存在数据，进行双向同步
-        const parsedLocalData = JSON.parse(localData);
-        const initialData = navigationData;
+    // 加载导航数据：优先从localStorage，其次从JSON文件
+    loadNavigationData() {
+      try {
+        // 1. 检查localStorage中是否有数据
+        const localData = localStorage.getItem("navigationData");
+        if (localData) {
+          this.navigationData = JSON.parse(localData);
+          return;
+        }
 
-        // 创建合并后的数据对象
-        const mergedData = [];
-        const categoryMap = new Map();
+        // 2. 如果localStorage中没有数据，从JSON文件加载
+        const jsonData = require("@/assets/data/navigation.json");
+        this.navigationData = jsonData;
 
-        // 先添加本地存储中的所有分类和网站
-        parsedLocalData.forEach((category) => {
-          categoryMap.set(category.category, [...category.sites]);
-        });
-
-        // 再添加初始数据中本地存储没有的分类和网站
-        initialData.forEach((category) => {
-          if (!categoryMap.has(category.category)) {
-            categoryMap.set(category.category, [...category.sites]);
-          } else {
-            // 合并网站数据，去重
-            const existingSites = categoryMap.get(category.category);
-            const existingUrls = new Set(existingSites.map((site) => site.url));
-
-            // 添加初始数据中本地存储没有的网站
-            category.sites.forEach((site) => {
-              if (!existingUrls.has(site.url)) {
-                existingSites.push(site);
-              }
-            });
-
-            categoryMap.set(category.category, existingSites);
-          }
-        });
-
-        // 将合并后的数据转换为数组格式
-        categoryMap.forEach((sites, category) => {
-          mergedData.push({
-            category,
-            sites,
-          });
-        });
-
-        // 更新页面数据和本地存储
-        this.navigationData = mergedData;
-        localStorage.setItem("navigationData", JSON.stringify(mergedData));
+        // 将JSON数据保存到localStorage，便于下次快速加载
+        localStorage.setItem("navigationData", JSON.stringify(jsonData));
+      } catch (error) {
+        console.error("Failed to load navigation data:", error);
+        // 3. 如果JSON文件加载失败，使用默认空数据
+        this.navigationData = [];
       }
     },
   },
