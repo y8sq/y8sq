@@ -21,7 +21,7 @@ const routes = [
 const router = new VueRouter({
   routes,
   base: "/y8sq",
-  mode: "history",
+  // mode: "history",
 });
 
 export default router;

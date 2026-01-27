@@ -594,7 +594,8 @@ export default {
     // 跳转到数据管理页面
     goToManagePage() {
       // 直接跳转到管理页面，不需要确认
-      window.location.href = "/y8sq/manage";
+      // window.location.href = "/y8sq/manage";
+      this.$router.push("/manage");
     },
 
     // 清空搜索输入框
