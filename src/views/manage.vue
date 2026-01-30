@@ -1776,7 +1776,9 @@ export default {
 }
 
 /* 管理页面响应式布局 */
-@media (max-width: 768px) {
+
+/* 平板设备 (768px - 1023px) */
+@media (max-width: 1023px) {
   .header {
     padding: var(--spacing-lg) 0;
     flex-direction: column;
@@ -1785,7 +1787,7 @@ export default {
 
     .logo {
       h1 {
-        font-size: 24px;
+        font-size: 26px;
       }
     }
   }
@@ -1819,13 +1821,14 @@ export default {
 
       .category_title {
         h2 {
-          font-size: 16px;
+          font-size: 17px;
         }
       }
 
       .category_actions {
         align-self: stretch;
         justify-content: center;
+        flex-wrap: wrap;
       }
 
       .site_manage_list {
@@ -1838,6 +1841,170 @@ export default {
           th,
           td {
             padding: var(--spacing-xs) var(--spacing-sm);
+            font-size: 14px;
+          }
+
+          .icon_column {
+            width: 55px;
+
+            .site_icon {
+              width: 28px;
+              height: 28px;
+            }
+          }
+
+          .site_name_column {
+            width: 180px;
+          }
+
+          .site_url_column {
+            width: 250px;
+          }
+
+          .action_column {
+            flex-direction: column;
+            gap: 4px;
+          }
+
+          .move-btn,
+          .edit_btn,
+          .delete_btn {
+            padding: 6px 10px;
+            font-size: 13px;
+            min-height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+        }
+      }
+
+      .add_site_container {
+        padding: 0 var(--spacing-sm) var(--spacing-sm);
+      }
+    }
+  }
+
+  .modal {
+    .modal_content {
+      width: 90%;
+      max-width: 500px;
+      margin: 20px auto;
+
+      .modal_header {
+        padding: var(--spacing-xs) var(--spacing-sm);
+
+        h3 {
+          font-size: 17px;
+        }
+      }
+
+      .modal_body {
+        padding: var(--spacing-sm);
+      }
+    }
+  }
+
+  .toast {
+    top: 20px;
+    right: 20px;
+    left: 20px;
+    font-size: 14px;
+    padding: var(--spacing-xs) var(--spacing-sm);
+  }
+
+  .scroll-top-btn {
+    bottom: 20px;
+    right: 20px;
+    width: 45px;
+    height: 45px;
+    font-size: 18px;
+  }
+}
+
+/* 小型平板和大型手机 (576px - 767px) */
+@media (max-width: 767px) {
+  .header {
+    padding: var(--spacing-md) 0;
+
+    .logo {
+      h1 {
+        font-size: 24px;
+      }
+
+      p {
+        font-size: 13px;
+      }
+    }
+
+    .back_btn {
+      font-size: 13px;
+      padding: var(--spacing-xs) var(--spacing-sm);
+      min-height: 36px;
+      display: flex;
+      align-items: center;
+    }
+  }
+
+  .manage_actions {
+    padding: var(--spacing-xs) var(--spacing-sm);
+
+    .action_buttons,
+    .export_buttons {
+      flex-wrap: wrap;
+      gap: var(--spacing-xs);
+    }
+
+    .add_data_btn,
+    .import_btn,
+    .export_btn {
+      font-size: 13px;
+      padding: var(--spacing-xs) var(--spacing-sm);
+      min-height: 36px;
+      display: flex;
+      align-items: center;
+    }
+  }
+
+  .category_list {
+    .category_card {
+      .category_header {
+        padding: var(--spacing-xs) var(--spacing-sm);
+      }
+
+      .category_title {
+        h2 {
+          font-size: 16px;
+        }
+
+        .count {
+          font-size: 13px;
+          padding: 1px 6px;
+        }
+      }
+
+      .category_actions {
+        gap: var(--spacing-xs);
+
+        .move-btn,
+        .edit_btn,
+        .delete_btn {
+          font-size: 11px;
+          padding: 3px 8px;
+          min-height: 28px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+      }
+
+      .site_manage_list {
+        padding: var(--spacing-xs);
+
+        .site_table {
+          th,
+          td {
+            padding: var(--spacing-xs);
             font-size: 13px;
           }
 
@@ -1855,18 +2022,36 @@ export default {
           }
 
           .site_url_column {
-            width: 280px;
+            width: 200px;
           }
 
           .action_column {
-            flex-direction: column;
             gap: 2px;
+          }
+
+          .move-btn,
+          .edit_btn,
+          .delete_btn {
+            padding: 4px 8px;
+            font-size: 12px;
+            min-height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
           }
         }
       }
 
       .add_site_container {
-        padding: 0 var(--spacing-sm) var(--spacing-sm);
+        padding: 0 var(--spacing-xs) var(--spacing-xs);
+
+        .add_site_btn {
+          font-size: 12px;
+          padding: 5px 10px;
+          min-height: 32px;
+          display: flex;
+          align-items: center;
+        }
       }
     }
   }
@@ -1877,8 +2062,6 @@ export default {
       margin: 10px;
 
       .modal_header {
-        padding: var(--spacing-xs) var(--spacing-sm);
-
         h3 {
           font-size: 16px;
         }
@@ -1886,6 +2069,33 @@ export default {
 
       .modal_body {
         padding: var(--spacing-sm);
+
+        .form_group {
+          margin-bottom: var(--spacing-sm);
+
+          label {
+            font-size: 13px;
+          }
+
+          input {
+            font-size: 13px;
+            height: 36px;
+          }
+        }
+
+        .form_actions {
+          margin-top: var(--spacing-lg);
+
+          .cancel_btn,
+          .submit_btn {
+            font-size: 13px;
+            padding: var(--spacing-xs) var(--spacing-sm);
+            min-height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+        }
       }
     }
   }
@@ -1897,24 +2107,134 @@ export default {
     font-size: 13px;
     padding: var(--spacing-xs) var(--spacing-sm);
   }
+
+  .scroll-top-btn {
+    bottom: 15px;
+    right: 15px;
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+  }
 }
 
+/* 小型手机 (576px 以下) */
 @media (max-width: 576px) {
+  .header {
+    .logo {
+      h1 {
+        font-size: 22px;
+      }
+    }
+  }
+
   .category_list {
     .category_card {
       .site_manage_list {
         .site_table {
-          th:nth-child(2),
-          td:nth-child(2) {
-            min-width: 50px;
+          th,
+          td {
+            font-size: 12px;
           }
-          th:nth-child(3),
-          td:nth-child(3) {
-            min-width: 100px;
+
+          .site_name_column {
+            width: 120px;
           }
-          th:nth-child(4),
-          td:nth-child(4) {
-            min-width: 150px;
+
+          .site_url_column {
+            width: 180px;
+          }
+
+          .action_column {
+            .move-btn,
+            .edit_btn,
+            .delete_btn {
+              font-size: 11px;
+              padding: 3px 6px;
+              min-height: 26px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+
+              i {
+                font-size: 9px;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .modal {
+    .modal_content {
+      .modal_body {
+        .form_group {
+          label {
+            font-size: 12px;
+          }
+
+          input {
+            font-size: 12px;
+            height: 34px;
+          }
+        }
+
+        .form_actions {
+          flex-direction: column;
+
+          .cancel_btn,
+          .submit_btn {
+            width: 100%;
+            justify-content: center;
+            min-height: 34px;
+            display: flex;
+            align-items: center;
+          }
+        }
+      }
+    }
+  }
+
+  .toast {
+    font-size: 12px;
+    padding: var(--spacing-xs);
+  }
+
+  .scroll-top-btn {
+    bottom: 10px;
+    right: 10px;
+    width: 36px;
+    height: 36px;
+    font-size: 14px;
+  }
+}
+
+/* 超小型手机 (480px 以下) */
+@media (max-width: 480px) {
+  .category_list {
+    .category_card {
+      .category_actions {
+        flex-direction: column;
+        align-items: stretch;
+
+        .move-btn,
+        .edit_btn,
+        .delete_btn {
+          justify-content: center;
+          min-height: 32px;
+          display: flex;
+          align-items: center;
+        }
+      }
+
+      .site_manage_list {
+        .site_table {
+          .site_name_column {
+            width: 100px;
+          }
+
+          .site_url_column {
+            width: 150px;
           }
         }
       }
@@ -1953,14 +2273,5 @@ export default {
   }
 }
 
-/* 响应式调整 */
-@media (max-width: 768px) {
-  .scroll-top-btn {
-    bottom: 20px;
-    right: 20px;
-    width: 40px;
-    height: 40px;
-    font-size: 16px;
-  }
-}
+
 </style>
