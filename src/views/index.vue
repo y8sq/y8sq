@@ -334,6 +334,16 @@
     </div>
 
     <div class="header_actions" @click="goToManagePage">管理</div>
+    
+    <!-- 滚动到顶部按钮 -->
+    <button 
+      class="scroll-to-top" 
+      v-if="showScrollTop" 
+      @click="scrollToTop"
+      title="滚动到顶部"
+    >
+      <i class="fa fa-arrow-up" aria-hidden="true"></i>
+    </button>
   </div>
 </template>
 
@@ -402,6 +412,8 @@ export default {
         onConfirm: null,
         onCancel: null,
       },
+      // 滚动到顶部按钮状态
+      showScrollTop: false,
     };
   },
   computed: {
@@ -451,14 +463,21 @@ export default {
 
     // 加载搜索历史
     this.loadSearchHistory();
+    
+    // 添加滚动事件监听器
+    window.addEventListener('scroll', this.handleScroll);
+  },
+  beforeDestroy() {
+    // 移除滚动事件监听器
+    window.removeEventListener('scroll', this.handleScroll);
   },
   watch: {
     // 监听搜索引擎选择变化，保存到localStorage
-    selectedEngine(newVal) {
+    selectedEngine() {
       this.saveMenuState();
     },
     // 监听搜索词变化，保存到localStorage
-    searchQuery(newVal) {
+    searchQuery() {
       this.saveMenuState();
     },
   },
@@ -651,14 +670,29 @@ export default {
         cancelText: "取消",
       })
         .then(() => {
-          category.sites.splice(index, 1);
-          // 如果分类下没有网站了，删除该分类
-          if (category.sites.length === 0) {
-            const categoryIndex = this.navigationData.findIndex(
-              (cat) => cat.category === category.category,
-            );
-            this.navigationData.splice(categoryIndex, 1);
+          // 创建新的数组副本，确保Vue能检测到变化
+          const updatedCategory = {
+            ...category,
+            sites: [...category.sites]
+          };
+          updatedCategory.sites.splice(index, 1);
+          
+          // 更新navigationData
+          const updatedNavigationData = [...this.navigationData];
+          const categoryIndex = updatedNavigationData.findIndex(
+            (cat) => cat.category === category.category,
+          );
+          
+          if (updatedCategory.sites.length === 0) {
+            // 如果分类下没有网站了，删除该分类
+            updatedNavigationData.splice(categoryIndex, 1);
+          } else {
+            // 否则更新分类
+            updatedNavigationData[categoryIndex] = updatedCategory;
           }
+          
+          // 重新赋值触发Vue响应式更新
+          this.navigationData = updatedNavigationData;
           this.saveDataToLocal();
         })
         .catch(() => {
@@ -746,29 +780,76 @@ export default {
 
       if (this.editingItem) {
         // 编辑现有数据
-        const { category, index } = this.editingItem;
+        const { category: oldCategory, index: oldIndex } = this.editingItem;
+        // 创建navigationData的副本
+        const updatedNavigationData = [...this.navigationData];
+        
         // 如果分类名称改变了
-        if (this.formData.category !== category.category) {
+        if (this.formData.category !== oldCategory.category) {
           // 从原分类中删除
-          category.sites.splice(index, 1);
-          // 如果原分类下没有网站了，删除该分类
-          if (category.sites.length === 0) {
-            const categoryIndex = this.navigationData.findIndex(
-              (cat) => cat.category === category.category,
-            );
-            this.navigationData.splice(categoryIndex, 1);
+          const oldCategoryIndex = updatedNavigationData.findIndex(
+            (cat) => cat.category === oldCategory.category,
+          );
+          const updatedOldCategory = {
+            ...updatedNavigationData[oldCategoryIndex],
+            sites: [...updatedNavigationData[oldCategoryIndex].sites]
+          };
+          updatedOldCategory.sites.splice(oldIndex, 1);
+          
+          if (updatedOldCategory.sites.length === 0) {
+            // 如果原分类下没有网站了，删除该分类
+            updatedNavigationData.splice(oldCategoryIndex, 1);
+          } else {
+            // 否则更新原分类
+            updatedNavigationData[oldCategoryIndex] = updatedOldCategory;
           }
+          
           // 添加到新分类
-          targetCategory.sites.push(siteData);
+          const newCategoryIndex = updatedNavigationData.findIndex(
+            (cat) => cat.category === this.formData.category,
+          );
+          if (newCategoryIndex !== -1) {
+            const updatedNewCategory = {
+              ...updatedNavigationData[newCategoryIndex],
+              sites: [...updatedNavigationData[newCategoryIndex].sites]
+            };
+            updatedNewCategory.sites.push(siteData);
+            updatedNavigationData[newCategoryIndex] = updatedNewCategory;
+          }
         } else {
           // 只更新网站信息
-          category.sites[index] = siteData;
+          const categoryIndex = updatedNavigationData.findIndex(
+            (cat) => cat.category === oldCategory.category,
+          );
+          const updatedCategory = {
+            ...updatedNavigationData[categoryIndex],
+            sites: [...updatedNavigationData[categoryIndex].sites]
+          };
+          updatedCategory.sites[oldIndex] = siteData;
+          updatedNavigationData[categoryIndex] = updatedCategory;
         }
+        
+        // 重新赋值触发Vue响应式更新
+        this.navigationData = updatedNavigationData;
         alert("数据更新成功");
       } else {
         // 添加新数据
+        // 创建navigationData的副本
+        const updatedNavigationData = [...this.navigationData];
+        const categoryIndex = updatedNavigationData.findIndex(
+          (cat) => cat.category === this.formData.category,
+        );
+        
         // 添加到现有分类
-        targetCategory.sites.push(siteData);
+        const updatedCategory = {
+          ...updatedNavigationData[categoryIndex],
+          sites: [...updatedNavigationData[categoryIndex].sites]
+        };
+        updatedCategory.sites.push(siteData);
+        updatedNavigationData[categoryIndex] = updatedCategory;
+        
+        // 重新赋值触发Vue响应式更新
+        this.navigationData = updatedNavigationData;
         alert("数据添加成功");
       }
 
@@ -845,80 +926,109 @@ export default {
         name: "当前网站导航",
         url: window.location.href,
         icon: "icon-home00.png",
+        sort: 0,
+        protected: false
       };
 
+      // 创建navigationData的副本
+      const updatedNavigationData = [...this.navigationData];
+      
       // 查找常用导航分类
-      let commonCategory = this.navigationData.find(
+      let commonCategoryIndex = updatedNavigationData.findIndex(
         (cat) => cat.category === "常用导航",
       );
 
-      if (!commonCategory) {
+      if (commonCategoryIndex === -1) {
         // 如果没有常用导航分类，创建一个
-        commonCategory = {
+        const newCommonCategory = {
           category: "常用导航",
-          sites: [],
+          sites: [currentPage],
+          sort: 0,
+          protected: false,
         };
-        this.navigationData.unshift(commonCategory);
+        updatedNavigationData.unshift(newCommonCategory);
+      } else {
+        // 检查是否已存在相同的页面
+        const commonCategory = updatedNavigationData[commonCategoryIndex];
+        const exists = commonCategory.sites.some(
+          (site) => site.url === currentPage.url,
+        );
+
+        if (exists) {
+          alert("当前页面已在常用导航中");
+          return;
+        }
+
+        // 创建分类副本并添加页面
+        const updatedCommonCategory = {
+          ...commonCategory,
+          sites: [...commonCategory.sites, currentPage]
+        };
+        updatedNavigationData[commonCategoryIndex] = updatedCommonCategory;
       }
 
-      // 检查是否已存在相同的页面
-      const exists = commonCategory.sites.some(
-        (site) => site.url === currentPage.url,
-      );
-
-      if (exists) {
-        alert("当前页面已在常用导航中");
-        return;
-      }
-
-      // 添加到常用导航
-      commonCategory.sites.push(currentPage);
-
+      // 重新赋值触发Vue响应式更新
+      this.navigationData = updatedNavigationData;
       // 保存到本地存储
       this.saveDataToLocal();
 
       alert("当前页面已添加到常用导航");
     },
     // 将网站添加到历史记录（常用导航）并打开
-    addToHistoryAndOpen(site, category) {
+    addToHistoryAndOpen(site) {
       // 构建网站数据对象
       const websiteData = {
         name: site.name,
         url: site.url,
         icon: site.icon,
+        sort: 0,
+        protected: false
       };
 
+      // 创建navigationData的副本
+      const updatedNavigationData = [...this.navigationData];
+      
       // 查找常用导航分类
-      let commonCategory = this.navigationData.find(
+      let commonCategoryIndex = updatedNavigationData.findIndex(
         (cat) => cat.category === "常用导航",
       );
 
-      if (!commonCategory) {
+      if (commonCategoryIndex === -1) {
         // 如果没有常用导航分类，创建一个
-        commonCategory = {
+        const newCommonCategory = {
           category: "常用导航",
-          sites: [],
+          sites: [websiteData],
+          sort: 0,
+          protected: false,
         };
-        this.navigationData.unshift(commonCategory);
-      }
+        updatedNavigationData.unshift(newCommonCategory);
+      } else {
+        // 检查是否已存在相同的网站
+        const commonCategory = updatedNavigationData[commonCategoryIndex];
+        const exists = commonCategory.sites.some(
+          (existingSite) => existingSite.url === websiteData.url,
+        );
 
-      // 检查是否已存在相同的网站
-      const exists = commonCategory.sites.some(
-        (existingSite) => existingSite.url === websiteData.url,
-      );
-
-      if (!exists) {
-        // 添加到常用导航的开头
-        commonCategory.sites.unshift(websiteData);
-
-        // 如果常用导航网站数量超过16个，保留最新的16个
-        if (commonCategory.sites.length > 16) {
-          commonCategory.sites = commonCategory.sites.slice(0, 16);
+        if (!exists) {
+          // 创建分类副本并添加网站到开头
+          const updatedCommonCategory = {
+            ...commonCategory,
+            sites: [websiteData, ...commonCategory.sites]
+          };
+          
+          // 如果常用导航网站数量超过16个，保留最新的16个
+          if (updatedCommonCategory.sites.length > 16) {
+            updatedCommonCategory.sites = updatedCommonCategory.sites.slice(0, 16);
+          }
+          
+          updatedNavigationData[commonCategoryIndex] = updatedCommonCategory;
         }
-
-        // 保存到本地存储
-        this.saveDataToLocal();
       }
+
+      // 重新赋值触发Vue响应式更新
+      this.navigationData = updatedNavigationData;
+      // 保存到本地存储
+      this.saveDataToLocal();
 
       // 打开网站
       window.open(site.url, "_blank");
@@ -948,6 +1058,18 @@ export default {
         // 3. 如果JSON文件加载失败，使用默认空数据
         this.navigationData = [];
       }
+    },
+    // 处理滚动事件，显示/隐藏滚动到顶部按钮
+    handleScroll() {
+      // 当滚动超过300px时显示按钮
+      this.showScrollTop = window.pageYOffset > 300;
+    },
+    // 滚动到顶部
+    scrollToTop() {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth' // 平滑滚动
+      });
     },
   },
 };
@@ -995,6 +1117,37 @@ export default {
       background: linear-gradient(to top, white 0%, transparent 100%);
       pointer-events: none;
     }
+  }
+}
+
+/* 滚动到顶部按钮样式 */
+.scroll-to-top {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  z-index: 999;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background-color: var(--primary-hover);
+    transform: translateY(-5px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  i {
+    margin: 0;
   }
 }
 .app_container {

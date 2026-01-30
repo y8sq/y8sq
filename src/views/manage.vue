@@ -131,10 +131,10 @@
               <table class="site_table">
                 <thead>
                   <tr>
-                    <th>排序</th>
-                    <th>序号</th>
-                    <th>网站名称</th>
-                    <th>网站地址</th>
+                    <th style="width: 80px;">排序</th>
+                    <th style="width: 60px;">图标</th>
+                    <th style="width: 200px;">网站名称</th>
+                    <th style="width: 400px;">网站地址</th>
                     <th>操作</th>
                   </tr>
                 </thead>
@@ -176,9 +176,11 @@
                         <i v-else class="fa fa-arrows" aria-hidden="true"></i>
                       </span>
                     </td>
-                    <td>{{ siteIndex + 1 }}</td>
-                    <td>{{ site.name }}</td>
-                    <td>
+                    <td class="icon_column">
+                      <img :src="`${site.icon}`" :alt="site.name" class="site_icon" />
+                    </td>
+                    <td class="site_name_column">{{ site.name }}</td>
+                    <td class="site_url_column">
                       <a :href="site.url" target="_blank">{{ site.url }}</a>
                     </td>
                     <td class="action_column">
@@ -352,12 +354,22 @@
         </div>
       </div>
     </div>
+
+    <!-- 滚动到顶部按钮 -->
+    <button
+      v-if="showScrollTop"
+      class="scroll-top-btn"
+      @click="scrollToTop"
+      title="滚动到顶部"
+    >
+      <i class="fa fa-arrow-up" aria-hidden="true"></i>
+    </button>
   </div>
 </template>
 
 <script>
 export default {
-  name: "Manage",
+  name: "ManagePage",
   data() {
     return {
       navigationData: [],
@@ -395,6 +407,8 @@ export default {
         onConfirm: null,
         onCancel: null,
       },
+      // 滚动到顶部按钮
+      showScrollTop: false,
     };
   },
   mounted() {
@@ -403,11 +417,15 @@ export default {
 
     // 添加键盘事件监听器
     window.addEventListener("keydown", this.handleKeyDown);
+    // 添加滚动事件监听器
+    window.addEventListener("scroll", this.handleScroll);
   },
 
   beforeDestroy() {
     // 移除键盘事件监听器
     window.removeEventListener("keydown", this.handleKeyDown);
+    // 移除滚动事件监听器
+    window.removeEventListener("scroll", this.handleScroll);
   },
   computed: {
     // 排序后的分类列表
@@ -426,7 +444,7 @@ export default {
 
     // 获取禁用状态
     getDisabledState() {
-      return (category, site, siteIndex) => {
+      return (category, site) => {
         if (this.isCommonCategory(category)) return true;
         if (site.protected) return true;
         return false;
@@ -1072,6 +1090,19 @@ export default {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
     },
+
+    // 处理滚动事件
+    handleScroll() {
+      this.showScrollTop = window.scrollY > 300;
+    },
+
+    // 滚动到顶部
+    scrollToTop() {
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+      });
+    },
   },
 };
 </script>
@@ -1350,6 +1381,7 @@ export default {
   .site_table {
     width: 100%;
     border-collapse: collapse;
+    table-layout: fixed;
 
     th,
     td {
@@ -1445,6 +1477,49 @@ export default {
     .non-sortable-row {
       background-color: var(--bg-light);
       opacity: 0.8;
+    }
+
+    /* 图标列样式 */
+    .icon_column {
+      width: 60px;
+      text-align: left;
+      vertical-align: middle;
+
+      .site_icon {
+        width: 32px;
+        height: 32px;
+        object-fit: contain;
+        border-radius: 4px;
+      }
+    }
+
+    /* 网站名称和地址列样式 */
+    .site_name_column,
+    .site_url_column {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .site_name_column {
+      width: 200px;
+    }
+
+    .site_url_column {
+      width: 400px;
+    }
+
+    .site_url_column a {
+      display: block;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: var(--primary-color);
+      text-decoration: none;
+
+      &:hover {
+        text-decoration: underline;
+      }
     }
 
     /* 排序值样式 */
@@ -1766,6 +1841,23 @@ export default {
             font-size: 13px;
           }
 
+          .icon_column {
+            width: 50px;
+
+            .site_icon {
+              width: 24px;
+              height: 24px;
+            }
+          }
+
+          .site_name_column {
+            width: 150px;
+          }
+
+          .site_url_column {
+            width: 280px;
+          }
+
           .action_column {
             flex-direction: column;
             gap: 2px;
@@ -1812,13 +1904,63 @@ export default {
     .category_card {
       .site_manage_list {
         .site_table {
+          th:nth-child(2),
+          td:nth-child(2) {
+            min-width: 50px;
+          }
           th:nth-child(3),
           td:nth-child(3) {
+            min-width: 100px;
+          }
+          th:nth-child(4),
+          td:nth-child(4) {
             min-width: 150px;
           }
         }
       }
     }
+  }
+}
+
+/* 滚动到顶部按钮 */
+.scroll-top-btn {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  box-shadow: var(--shadow-md);
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+
+  &:hover {
+    background-color: var(--primary-hover);
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  &:active {
+    transform: translateY(-1px);
+  }
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .scroll-top-btn {
+    bottom: 20px;
+    right: 20px;
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
   }
 }
 </style>
