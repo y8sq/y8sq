@@ -25,6 +25,9 @@
             <button class="import_btn" @click="triggerFileInput">
               <i class="fa fa-upload" aria-hidden="true"></i> 导入数据
             </button>
+            <button class="sort_btn" @click="sortAllData">
+              <i class="fa fa-sort-amount-asc" aria-hidden="true"></i> 排序数据
+            </button>
             <input
               type="file"
               ref="fileInput"
@@ -1103,6 +1106,73 @@ export default {
         behavior: "smooth"
       });
     },
+
+    // 排序所有数据
+    sortAllData() {
+      try {
+        // 1. 对分类进行排序（按照sort值升序）
+        const sortedCategories = [...this.navigationData].sort((a, b) => (a.sort || 9999) - (b.sort || 9999));
+
+        // 2. 对每个分类下的网站进行排序和序号调整
+        const finalData = sortedCategories.map((category, catIndex) => {
+          // 2.1 对网站按照sort值升序排序
+          let sortedSites = [...category.sites].sort((a, b) => (a.sort || 9999) - (b.sort || 9999));
+
+          // 2.2 处理序号相同和空缺的情况
+          sortedSites = this.adjustSiteSortValues(sortedSites);
+
+          // 2.3 更新分类的sort值，确保分类序号连续
+          const adjustedCategory = {
+            ...category,
+            sort: catIndex + 1, // 分类序号从1开始
+            sites: sortedSites
+          };
+
+          return adjustedCategory;
+        });
+
+        // 3. 更新数据并保存
+        this.navigationData = finalData;
+        this.saveData();
+        this.showToast("数据排序成功", "success");
+      } catch (error) {
+        console.error("排序数据失败:", error);
+        this.showToast("排序数据失败，请重试", "error");
+      }
+    },
+
+    // 调整网站的排序值，确保连续且无重复
+    adjustSiteSortValues(sites) {
+      if (!sites || sites.length === 0) return sites;
+
+      // 创建一个新数组来存储调整后的数据
+      const adjustedSites = [];
+      const usedSortValues = new Set();
+
+      // 遍历排序后的网站，调整序号
+      sites.forEach((site, index) => {
+        // 计算应该的序号（从1开始）
+        let expectedSort = index + 1;
+        
+        // 检查当前序号是否已被使用或小于等于0
+        while (usedSortValues.has(expectedSort) || expectedSort <= 0) {
+          expectedSort++;
+        }
+
+        // 标记此序号为已使用
+        usedSortValues.add(expectedSort);
+
+        // 创建调整后的网站对象
+        const adjustedSite = {
+          ...site,
+          sort: expectedSort
+        };
+
+        adjustedSites.push(adjustedSite);
+      });
+
+      return adjustedSites;
+    },
   },
 };
 </script>
@@ -1195,6 +1265,25 @@ export default {
 
       &:hover {
         background-color: var(--success-hover);
+      }
+    }
+
+    .sort_btn {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-xs);
+      padding: var(--spacing-xs) var(--spacing-md);
+      background-color: var(--warning-color);
+      color: var(--text-primary);
+      border: none;
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      cursor: pointer;
+
+      &:hover {
+        background-color: var(--warning-hover);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-md);
       }
     }
 

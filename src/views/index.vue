@@ -177,11 +177,24 @@
           >
             <!-- 分类标题 -->
             <div class="category_title">
-              <h2>{{ category.category }}</h2>
-              <span class="count">{{ category.sites.length }}</span>
-              <span v-if="category.protected" class="protected-badge"
-                >保护</span
-              >
+              <div class="title-content">
+                <h2>{{ category.category }}</h2>
+                <span v-if="category.protected" class="protected-badge"
+                  >保护</span
+                >
+              </div>
+              <div class="title-actions">
+                <!-- 新增数据按钮（排除常用导航） -->
+                <button
+                  v-if="category.category !== '常用导航'"
+                  class="add_data_btn"
+                  @click="openAddModal(category)"
+                  title="新增数据"
+                >
+                  <i class="fa fa-plus" aria-hidden="true"></i>
+                </button>
+                <span class="count">{{ category.sites.length }}</span>
+              </div>
             </div>
 
             <!-- 网站链接列表 -->
@@ -253,7 +266,9 @@
                   id="category"
                   v-model="formData.category"
                   placeholder="请输入分类名称"
+                  :readonly="editingItem !== null"
                   required
+                  disabled
                 />
               </div>
               <div class="form_group">
@@ -296,6 +311,7 @@
                   min="0"
                   step="1"
                   required
+                  disabled
                 />
               </div>
               <div class="form_actions">
@@ -334,16 +350,22 @@
     </div>
 
     <div class="header_actions" @click="goToManagePage">管理</div>
-    
+
     <!-- 滚动到顶部按钮 -->
-    <button 
-      class="scroll-to-top" 
-      v-if="showScrollTop" 
+    <button
+      class="scroll-to-top"
+      v-if="showScrollTop"
       @click="scrollToTop"
       title="滚动到顶部"
     >
       <i class="fa fa-arrow-up" aria-hidden="true"></i>
     </button>
+
+    <!-- 提示消息 -->
+    <div class="toast" v-if="toast.show" :class="toast.type">
+      <i :class="toast.icon" aria-hidden="true"></i>
+      <span>{{ toast.message }}</span>
+    </div>
   </div>
 </template>
 
@@ -414,6 +436,13 @@ export default {
       },
       // 滚动到顶部按钮状态
       showScrollTop: false,
+      // 提示消息
+      toast: {
+        show: false,
+        message: "",
+        type: "success", // success, error, warning
+        icon: "fa fa-check",
+      },
     };
   },
   computed: {
@@ -463,13 +492,13 @@ export default {
 
     // 加载搜索历史
     this.loadSearchHistory();
-    
+
     // 添加滚动事件监听器
-    window.addEventListener('scroll', this.handleScroll);
+    window.addEventListener("scroll", this.handleScroll);
   },
   beforeDestroy() {
     // 移除滚动事件监听器
-    window.removeEventListener('scroll', this.handleScroll);
+    window.removeEventListener("scroll", this.handleScroll);
   },
   watch: {
     // 监听搜索引擎选择变化，保存到localStorage
@@ -610,6 +639,27 @@ export default {
       this.showConfirmDialog = false;
     },
 
+    // 显示提示消息
+    showToast(message, type = "success") {
+      const iconMap = {
+        success: "fa fa-check",
+        error: "fa fa-exclamation-circle",
+        warning: "fa fa-warning",
+      };
+
+      this.toast = {
+        show: true,
+        message,
+        type,
+        icon: iconMap[type] || iconMap.success,
+      };
+
+      // 3秒后自动隐藏
+      setTimeout(() => {
+        this.toast.show = false;
+      }, 3000);
+    },
+
     // 跳转到数据管理页面
     goToManagePage() {
       // 直接跳转到管理页面，不需要确认
@@ -620,6 +670,20 @@ export default {
     // 清空搜索输入框
     clearSearchInput() {
       this.searchQuery = "";
+    },
+    // 打开新增数据弹窗
+    openAddModal(category) {
+      this.editingItem = null;
+      // 计算默认排序值：当前条目总数 + 1
+      const defaultSort = category.sites.length + 1;
+      this.formData = {
+        category: category.category,
+        name: "",
+        url: "",
+        icon: "",
+        sort: defaultSort,
+      };
+      this.showAddModal = true;
     },
     // 关闭新增数据弹窗
     closeModal() {
@@ -673,16 +737,16 @@ export default {
           // 创建新的数组副本，确保Vue能检测到变化
           const updatedCategory = {
             ...category,
-            sites: [...category.sites]
+            sites: [...category.sites],
           };
           updatedCategory.sites.splice(index, 1);
-          
+
           // 更新navigationData
           const updatedNavigationData = [...this.navigationData];
           const categoryIndex = updatedNavigationData.findIndex(
             (cat) => cat.category === category.category,
           );
-          
+
           if (updatedCategory.sites.length === 0) {
             // 如果分类下没有网站了，删除该分类
             updatedNavigationData.splice(categoryIndex, 1);
@@ -690,10 +754,15 @@ export default {
             // 否则更新分类
             updatedNavigationData[categoryIndex] = updatedCategory;
           }
-          
+
           // 重新赋值触发Vue响应式更新
-          this.navigationData = updatedNavigationData;
-          this.saveDataToLocal();
+        this.navigationData = updatedNavigationData;
+        // 保存数据到本地存储
+        this.saveDataToLocal();
+        // 执行排序操作，确保数据序号连续
+        this.sortAllData();
+        // 显示删除成功提示
+        this.showToast("数据删除成功");
         })
         .catch(() => {
           // 用户取消删除操作
@@ -783,7 +852,7 @@ export default {
         const { category: oldCategory, index: oldIndex } = this.editingItem;
         // 创建navigationData的副本
         const updatedNavigationData = [...this.navigationData];
-        
+
         // 如果分类名称改变了
         if (this.formData.category !== oldCategory.category) {
           // 从原分类中删除
@@ -792,10 +861,10 @@ export default {
           );
           const updatedOldCategory = {
             ...updatedNavigationData[oldCategoryIndex],
-            sites: [...updatedNavigationData[oldCategoryIndex].sites]
+            sites: [...updatedNavigationData[oldCategoryIndex].sites],
           };
           updatedOldCategory.sites.splice(oldIndex, 1);
-          
+
           if (updatedOldCategory.sites.length === 0) {
             // 如果原分类下没有网站了，删除该分类
             updatedNavigationData.splice(oldCategoryIndex, 1);
@@ -803,7 +872,7 @@ export default {
             // 否则更新原分类
             updatedNavigationData[oldCategoryIndex] = updatedOldCategory;
           }
-          
+
           // 添加到新分类
           const newCategoryIndex = updatedNavigationData.findIndex(
             (cat) => cat.category === this.formData.category,
@@ -811,7 +880,7 @@ export default {
           if (newCategoryIndex !== -1) {
             const updatedNewCategory = {
               ...updatedNavigationData[newCategoryIndex],
-              sites: [...updatedNavigationData[newCategoryIndex].sites]
+              sites: [...updatedNavigationData[newCategoryIndex].sites],
             };
             updatedNewCategory.sites.push(siteData);
             updatedNavigationData[newCategoryIndex] = updatedNewCategory;
@@ -823,15 +892,15 @@ export default {
           );
           const updatedCategory = {
             ...updatedNavigationData[categoryIndex],
-            sites: [...updatedNavigationData[categoryIndex].sites]
+            sites: [...updatedNavigationData[categoryIndex].sites],
           };
           updatedCategory.sites[oldIndex] = siteData;
           updatedNavigationData[categoryIndex] = updatedCategory;
         }
-        
+
         // 重新赋值触发Vue响应式更新
         this.navigationData = updatedNavigationData;
-        alert("数据更新成功");
+        this.showToast("数据更新成功");
       } else {
         // 添加新数据
         // 创建navigationData的副本
@@ -839,18 +908,18 @@ export default {
         const categoryIndex = updatedNavigationData.findIndex(
           (cat) => cat.category === this.formData.category,
         );
-        
+
         // 添加到现有分类
         const updatedCategory = {
           ...updatedNavigationData[categoryIndex],
-          sites: [...updatedNavigationData[categoryIndex].sites]
+          sites: [...updatedNavigationData[categoryIndex].sites],
         };
         updatedCategory.sites.push(siteData);
         updatedNavigationData[categoryIndex] = updatedCategory;
-        
+
         // 重新赋值触发Vue响应式更新
         this.navigationData = updatedNavigationData;
-        alert("数据添加成功");
+        this.showToast("数据添加成功");
       }
 
       // 关闭弹窗并重置表单
@@ -927,12 +996,12 @@ export default {
         url: window.location.href,
         icon: "icon-home00.png",
         sort: 0,
-        protected: false
+        protected: false,
       };
 
       // 创建navigationData的副本
       const updatedNavigationData = [...this.navigationData];
-      
+
       // 查找常用导航分类
       let commonCategoryIndex = updatedNavigationData.findIndex(
         (cat) => cat.category === "常用导航",
@@ -962,7 +1031,7 @@ export default {
         // 创建分类副本并添加页面
         const updatedCommonCategory = {
           ...commonCategory,
-          sites: [...commonCategory.sites, currentPage]
+          sites: [...commonCategory.sites, currentPage],
         };
         updatedNavigationData[commonCategoryIndex] = updatedCommonCategory;
       }
@@ -982,12 +1051,12 @@ export default {
         url: site.url,
         icon: site.icon,
         sort: 0,
-        protected: false
+        protected: false,
       };
 
       // 创建navigationData的副本
       const updatedNavigationData = [...this.navigationData];
-      
+
       // 查找常用导航分类
       let commonCategoryIndex = updatedNavigationData.findIndex(
         (cat) => cat.category === "常用导航",
@@ -1005,24 +1074,40 @@ export default {
       } else {
         // 检查是否已存在相同的网站
         const commonCategory = updatedNavigationData[commonCategoryIndex];
-        const exists = commonCategory.sites.some(
+        const existingIndex = commonCategory.sites.findIndex(
           (existingSite) => existingSite.url === websiteData.url,
         );
 
-        if (!exists) {
-          // 创建分类副本并添加网站到开头
+        if (existingIndex === -1) {
+          // 网站不存在，添加到开头
           const updatedCommonCategory = {
             ...commonCategory,
-            sites: [websiteData, ...commonCategory.sites]
+            sites: [websiteData, ...commonCategory.sites],
           };
-          
+
           // 如果常用导航网站数量超过16个，保留最新的16个
           if (updatedCommonCategory.sites.length > 16) {
-            updatedCommonCategory.sites = updatedCommonCategory.sites.slice(0, 16);
+            updatedCommonCategory.sites = updatedCommonCategory.sites.slice(
+              0,
+              16,
+            );
           }
-          
+
+          updatedNavigationData[commonCategoryIndex] = updatedCommonCategory;
+        } else if (existingIndex > 0) {
+          // 网站已存在但不在第一位，移到开头
+          const updatedSites = [...commonCategory.sites];
+          updatedSites.splice(existingIndex, 1);
+          updatedSites.unshift(websiteData);
+
+          const updatedCommonCategory = {
+            ...commonCategory,
+            sites: updatedSites,
+          };
+
           updatedNavigationData[commonCategoryIndex] = updatedCommonCategory;
         }
+        // 如果网站已在第一位，无需操作
       }
 
       // 重新赋值触发Vue响应式更新
@@ -1068,8 +1153,73 @@ export default {
     scrollToTop() {
       window.scrollTo({
         top: 0,
-        behavior: 'smooth' // 平滑滚动
+        behavior: "smooth", // 平滑滚动
       });
+    },
+
+    // 排序所有数据
+    sortAllData() {
+      try {
+        // 1. 对分类进行排序（按照sort值升序）
+        const sortedCategories = [...this.navigationData].sort((a, b) => (a.sort || 9999) - (b.sort || 9999));
+
+        // 2. 对每个分类下的网站进行排序和序号调整
+        const finalData = sortedCategories.map((category, catIndex) => {
+          // 2.1 对网站按照sort值升序排序
+          let sortedSites = [...category.sites].sort((a, b) => (a.sort || 9999) - (b.sort || 9999));
+
+          // 2.2 处理序号相同和空缺的情况
+          sortedSites = this.adjustSiteSortValues(sortedSites);
+
+          // 2.3 更新分类的sort值，确保分类序号连续
+          const adjustedCategory = {
+            ...category,
+            sort: catIndex + 1, // 分类序号从1开始
+            sites: sortedSites
+          };
+
+          return adjustedCategory;
+        });
+
+        // 3. 更新数据并保存
+        this.navigationData = finalData;
+        this.saveDataToLocal();
+      } catch (error) {
+        console.error("排序数据失败:", error);
+      }
+    },
+
+    // 调整网站的排序值，确保连续且无重复
+    adjustSiteSortValues(sites) {
+      if (!sites || sites.length === 0) return sites;
+
+      // 创建一个新数组来存储调整后的数据
+      const adjustedSites = [];
+      const usedSortValues = new Set();
+
+      // 遍历排序后的网站，调整序号
+      sites.forEach((site, index) => {
+        // 计算应该的序号（从1开始）
+        let expectedSort = index + 1;
+        
+        // 检查当前序号是否已被使用或小于等于0
+        while (usedSortValues.has(expectedSort) || expectedSort <= 0) {
+          expectedSort++;
+        }
+
+        // 标记此序号为已使用
+        usedSortValues.add(expectedSort);
+
+        // 创建调整后的网站对象
+        const adjustedSite = {
+          ...site,
+          sort: expectedSort
+        };
+
+        adjustedSites.push(adjustedSite);
+      });
+
+      return adjustedSites;
     },
   },
 };
@@ -1148,6 +1298,40 @@ export default {
 
   i {
     margin: 0;
+  }
+}
+
+/* 提示消息样式 */
+.toast {
+  position: fixed;
+  top: 20px;
+  right: 30px;
+  padding: 12px 20px;
+  border-radius: 6px;
+  color: white;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 2000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+
+  i {
+    font-size: 16px;
+  }
+
+  &.success {
+    background-color: #28a745;
+  }
+
+  &.error {
+    background-color: #dc3545;
+  }
+
+  &.warning {
+    background-color: #ffc107;
+    color: #212529;
   }
 }
 .app_container {
@@ -1452,25 +1636,63 @@ export default {
         display: flex;
         align-items: center;
         border-bottom: 1px solid #e1e5eb;
-        justify-content: flex-start;
+        justify-content: space-between;
 
-        h2 {
-          font-size: 18px;
-          color: #333;
-          font-weight: 600;
+        .title-content {
           display: flex;
           align-items: center;
           justify-content: center;
           flex-grow: 1;
+
+          h2 {
+            font-size: 18px;
+            color: #333;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            margin: 0;
+          }
+
+          .protected-badge {
+            margin-left: 8px;
+          }
         }
 
-        .count {
-          font-size: 14px;
-          color: #666;
-          background-color: rgba(66, 133, 244, 0.1);
-          padding: 2px 8px;
-          border-radius: 12px;
-          margin-left: 10px;
+        .title-actions {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+
+          .add_data_btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            background-color: #4285f4;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 18px;
+            cursor: pointer;
+
+            &:hover {
+              background-color: #3367d6;
+              box-shadow: 0 2px 6px rgba(66, 133, 244, 0.3);
+            }
+
+            i {
+              font-size: 16px;
+            }
+          }
+
+          .count {
+            font-size: 14px;
+            color: #666;
+            background-color: rgba(66, 133, 244, 0.1);
+            padding: 2px 8px;
+            border-radius: 12px;
+          }
         }
       }
 
