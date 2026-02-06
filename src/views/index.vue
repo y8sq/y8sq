@@ -466,11 +466,13 @@ export default {
       // 对每个分类下的网站进行排序
       return sortedCategories.map((category) => ({
         ...category,
-        sites: [...category.sites].sort((a, b) => {
-          const sortA = a.sort || 9999;
-          const sortB = b.sort || 9999;
-          return sortA - sortB;
-        }),
+        sites: category.category === '常用导航'
+          ? [...category.sites] // 常用导航保持原始顺序（最新添加的在前面）
+          : [...category.sites].sort((a, b) => {
+              const sortA = a.sort || 9999;
+              const sortB = b.sort || 9999;
+              return sortA - sortB;
+            }),
       }));
     },
   },
@@ -914,7 +916,12 @@ export default {
           ...updatedNavigationData[categoryIndex],
           sites: [...updatedNavigationData[categoryIndex].sites],
         };
-        updatedCategory.sites.push(siteData);
+        // 对于常用导航分类，新添加的项目放在列表开头
+        if (this.formData.category === '常用导航') {
+          updatedCategory.sites.unshift(siteData);
+        } else {
+          updatedCategory.sites.push(siteData);
+        }
         updatedNavigationData[categoryIndex] = updatedCategory;
 
         // 重新赋值触发Vue响应式更新
@@ -1165,13 +1172,25 @@ export default {
 
         // 2. 对每个分类下的网站进行排序和序号调整
         const finalData = sortedCategories.map((category, catIndex) => {
-          // 2.1 对网站按照sort值升序排序
-          let sortedSites = [...category.sites].sort((a, b) => (a.sort || 9999) - (b.sort || 9999));
+          let sortedSites;
+          
+          // 2.1 对网站进行排序：常用导航保持原始顺序，其他分类按sort值排序
+          if (category.category === '常用导航') {
+            // 常用导航保持原始顺序（最新添加的在前面）
+            sortedSites = [...category.sites];
+            // 为常用导航的网站设置连续的排序值，从1开始
+            sortedSites = sortedSites.map((site, index) => ({
+              ...site,
+              sort: index + 1
+            }));
+          } else {
+            // 其他分类按sort值升序排序
+            sortedSites = [...category.sites].sort((a, b) => (a.sort || 9999) - (b.sort || 9999));
+            // 处理序号相同和空缺的情况
+            sortedSites = this.adjustSiteSortValues(sortedSites);
+          }
 
-          // 2.2 处理序号相同和空缺的情况
-          sortedSites = this.adjustSiteSortValues(sortedSites);
-
-          // 2.3 更新分类的sort值，确保分类序号连续
+          // 2.2 更新分类的sort值，确保分类序号连续
           const adjustedCategory = {
             ...category,
             sort: catIndex + 1, // 分类序号从1开始
