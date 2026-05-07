@@ -1,6 +1,6 @@
 <template>
   <div class="toast-container">
-    <TransitionGroup name="toast">
+    <transition-group name="toast" tag="div">
       <div
         v-for="toast in toasts"
         :key="toast.id"
@@ -11,40 +11,40 @@
         <span class="toast-message">{{ toast.message }}</span>
         <button class="toast-close" @click="removeToast(toast.id)">×</button>
       </div>
-    </TransitionGroup>
+    </transition-group>
   </div>
 </template>
 
 <script>
-import { ref } from 'vue';
-
-const toasts = ref([]);
 let toastId = 0;
 
 export default {
   name: 'Toast',
-  setup() {
-    const addToast = (message, type = 'success', duration = 3000) => {
+  data() {
+    return {
+      toasts: []
+    };
+  },
+  methods: {
+    addToast(message, type = 'success', duration = 3000) {
       const id = ++toastId;
-      toasts.value.push({ id, message, type });
+      this.toasts.push({ id, message, type });
       
       if (duration > 0) {
         setTimeout(() => {
-          removeToast(id);
+          this.removeToast(id);
         }, duration);
       }
       
       return id;
-    };
-    
-    const removeToast = (id) => {
-      const index = toasts.value.findIndex(t => t.id === id);
+    },
+    removeToast(id) {
+      const index = this.toasts.findIndex(t => t.id === id);
       if (index !== -1) {
-        toasts.value.splice(index, 1);
+        this.toasts.splice(index, 1);
       }
-    };
-    
-    const getIcon = (type) => {
+    },
+    getIcon(type) {
       const icons = {
         success: '✓',
         error: '✗',
@@ -52,24 +52,7 @@ export default {
         info: 'ℹ'
       };
       return icons[type] || icons.info;
-    };
-    
-    return {
-      toasts,
-      addToast,
-      removeToast,
-      getIcon
-    };
-  },
-  provide() {
-    return {
-      $toast: {
-        success: (msg) => this.addToast(msg, 'success'),
-        error: (msg) => this.addToast(msg, 'error'),
-        warning: (msg) => this.addToast(msg, 'warning'),
-        info: (msg) => this.addToast(msg, 'info')
-      }
-    };
+    }
   }
 };
 </script>
@@ -159,11 +142,7 @@ export default {
   transition: all 0.3s ease;
 }
 
-.toast-enter-from {
-  opacity: 0;
-  transform: translateX(100%);
-}
-
+.toast-enter,
 .toast-leave-to {
   opacity: 0;
   transform: translateX(100%);
