@@ -205,13 +205,11 @@ export default {
 
 .tree-header {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 8px;
   padding: 8px 12px;
   background: linear-gradient(180deg, #f5f7fa 0%, #e4e8ec 100%);
   border-bottom: 1px solid #ccc;
-  flex-wrap: wrap;
-  gap: 8px;
 }
 
 .header-title {

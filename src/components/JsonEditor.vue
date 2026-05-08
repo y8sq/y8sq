@@ -126,8 +126,8 @@ export default {
 
 .editor-header {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 8px;
   padding: 8px 12px;
   background: linear-gradient(180deg, #f5f7fa 0%, #e4e8ec 100%);
   border-bottom: 1px solid #ccc;
@@ -141,6 +141,7 @@ export default {
 .toolbar {
   display: flex;
   gap: 4px;
+  flex-wrap: wrap;
 }
 
 .tool-btn {

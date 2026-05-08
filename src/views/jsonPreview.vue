@@ -12,9 +12,15 @@
       </div>
 
       <div
-        class="resizer resizer-left"
+        class="resizer"
         @mousedown="startResizeLeft"
-        :class="{ 'is-resizing': isResizingLeft }"
+        :class="{ 'is-dragging': isDragging === 'left' }"
+      ></div>
+
+      <div 
+        class="ghost-line ghost-left" 
+        v-if="isDragging === 'left'" 
+        :style="{ left: (targetLeftWidth + 6) + 'px' }"
       ></div>
 
       <div class="panel panel-center" :style="{ width: centerWidth + 'px' }">
@@ -26,9 +32,15 @@
       </div>
 
       <div
-        class="resizer resizer-right"
+        class="resizer"
         @mousedown="startResizeRight"
-        :class="{ 'is-resizing': isResizingRight }"
+        :class="{ 'is-dragging': isDragging === 'right' }"
+      ></div>
+
+      <div 
+        class="ghost-line ghost-right" 
+        v-if="isDragging === 'right'" 
+        :style="{ left: targetRightLine + 'px' }"
       ></div>
 
       <div class="panel panel-right" :style="{ width: rightWidth + 'px' }">
@@ -66,8 +78,11 @@ export default {
       leftWidth: 0,
       centerWidth: 0,
       rightWidth: 0,
-      isResizingLeft: false,
-      isResizingRight: false,
+      targetLeftWidth: 0,
+      targetCenterWidth: 0,
+      targetRightWidth: 0,
+      targetRightLine: 0,
+      isDragging: false,
     };
   },
   computed: {
@@ -79,10 +94,6 @@ export default {
     },
   },
   mounted() {
-    const defaultJson = ``;
-    this.jsonText = defaultJson;
-    this.treeNodes = parseJsonToTree(defaultJson) || [];
-
     window.addEventListener("resize", this.handleWindowResize);
     this.$nextTick(() => {
       this.handleWindowResize();
@@ -119,33 +130,29 @@ export default {
     },
     startResizeLeft(e) {
       e.preventDefault();
-      this.isResizingLeft = true;
+      this.isDragging = 'left';
+      this.targetLeftWidth = this.leftWidth;
+      this.targetCenterWidth = this.centerWidth;
 
       const startX = e.clientX;
       const startLeftWidth = this.leftWidth;
+      const startCenterWidth = this.centerWidth;
+      const containerWidth = this.$refs.layoutRef?.offsetWidth || window.innerWidth;
 
       const handleMouseMove = (e) => {
         const deltaX = e.clientX - startX;
-        const newLeftWidth = Math.max(
-          200,
-          Math.min(startLeftWidth + deltaX, 600),
-        );
-        const containerWidth =
-          this.$refs.layoutRef?.offsetWidth || window.innerWidth;
-
-        const remainingWidth = containerWidth - newLeftWidth - 12;
-        const centerRatio = 2 / 3;
-
-        this.leftWidth = newLeftWidth;
-        this.centerWidth = Math.max(
-          200,
-          Math.floor(remainingWidth * centerRatio),
-        );
-        this.rightWidth = Math.max(250, remainingWidth - this.centerWidth);
+        const newLeftWidth = Math.max(300, Math.min(startLeftWidth + deltaX, containerWidth - 700));
+        const delta = newLeftWidth - startLeftWidth;
+        const newCenterWidth = Math.max(400, startCenterWidth - delta);
+        
+        this.targetLeftWidth = newLeftWidth;
+        this.targetCenterWidth = newCenterWidth;
       };
 
       const handleMouseUp = () => {
-        this.isResizingLeft = false;
+        this.leftWidth = this.targetLeftWidth;
+        this.centerWidth = this.targetCenterWidth;
+        this.isDragging = false;
         document.removeEventListener("mousemove", handleMouseMove);
         document.removeEventListener("mouseup", handleMouseUp);
       };
@@ -155,27 +162,28 @@ export default {
     },
     startResizeRight(e) {
       e.preventDefault();
-      this.isResizingRight = true;
+      this.isDragging = 'right';
+      this.targetCenterWidth = this.centerWidth;
+      this.targetRightWidth = this.rightWidth;
+      this.targetRightLine = this.leftWidth + 6 + this.centerWidth + 6;
 
       const startX = e.clientX;
-      const startCenterWidth = this.centerWidth;
+      const startRightLine = this.leftWidth + 6 + this.centerWidth + 6;
 
       const handleMouseMove = (e) => {
-        const deltaX = e.clientX - startX;
-        const containerWidth =
-          this.$refs.layoutRef?.offsetWidth || window.innerWidth;
-        const remainingWidth = containerWidth - this.leftWidth - 12;
-
-        const newCenterWidth = Math.max(
-          200,
-          Math.min(startCenterWidth + deltaX, remainingWidth - 250),
-        );
-        this.centerWidth = newCenterWidth;
-        this.rightWidth = Math.max(250, remainingWidth - newCenterWidth);
+        const newRightLine = Math.max(this.leftWidth + 6 + 400 + 6, Math.min(e.clientX, this.leftWidth + 6 + this.centerWidth + 6 + this.rightWidth - 300));
+        const newCenterWidth = newRightLine - this.leftWidth - 6 - 6;
+        const newRightWidth = this.leftWidth + 6 + this.centerWidth + 6 + this.rightWidth - newRightLine;
+        
+        this.targetRightLine = newRightLine;
+        this.targetCenterWidth = newCenterWidth;
+        this.targetRightWidth = newRightWidth;
       };
 
       const handleMouseUp = () => {
-        this.isResizingRight = false;
+        this.centerWidth = this.targetCenterWidth;
+        this.rightWidth = this.targetRightWidth;
+        this.isDragging = false;
         document.removeEventListener("mousemove", handleMouseMove);
         document.removeEventListener("mouseup", handleMouseUp);
       };
@@ -184,23 +192,21 @@ export default {
       document.addEventListener("mouseup", handleMouseUp);
     },
     handleWindowResize() {
-      const containerWidth =
-        this.$refs.layoutRef?.offsetWidth || window.innerWidth;
+      const containerWidth = this.$refs.layoutRef?.offsetWidth || window.innerWidth;
       const totalResizerWidth = 12;
       const remainingWidth = containerWidth - totalResizerWidth;
-
+      
       const leftRatio = 1 / 4;
       const centerRatio = 2 / 4;
-
-      this.leftWidth = Math.max(200, Math.floor(remainingWidth * leftRatio));
-      this.centerWidth = Math.max(
-        200,
-        Math.floor(remainingWidth * centerRatio),
-      );
-      this.rightWidth = Math.max(
-        250,
-        remainingWidth - this.leftWidth - this.centerWidth,
-      );
+      
+      this.leftWidth = Math.floor(remainingWidth * leftRatio);
+      this.centerWidth = Math.floor(remainingWidth * centerRatio);
+      this.rightWidth = remainingWidth - this.leftWidth - this.centerWidth;
+      
+      this.targetLeftWidth = this.leftWidth;
+      this.targetCenterWidth = this.centerWidth;
+      this.targetRightWidth = this.rightWidth;
+      this.targetRightLine = this.leftWidth + 6 + this.centerWidth + 6;
     },
   },
 };
@@ -219,6 +225,7 @@ export default {
   display: flex;
   flex: 1;
   overflow: hidden;
+  position: relative;
 }
 
 .panel {
@@ -229,18 +236,15 @@ export default {
 }
 
 .panel-left {
-  min-width: 200px;
-  max-width: 600px;
+  min-width: 300px;
 }
 
 .panel-center {
-  min-width: 200px;
-  max-width: 800px;
+  min-width: 400px;
 }
 
 .panel-right {
-  min-width: 250px;
-  flex: 1;
+  min-width: 300px;
 }
 
 .resizer {
@@ -253,10 +257,11 @@ export default {
   justify-content: center;
   flex-shrink: 0;
   position: relative;
+  z-index: 10;
 }
 
 .resizer:hover,
-.resizer.is-resizing {
+.resizer.is-dragging {
   background: #4a90d9;
 }
 
@@ -269,7 +274,56 @@ export default {
 }
 
 .resizer:hover::after,
-.resizer.is-resizing::after {
+.resizer.is-dragging::after {
   background: #fff;
+}
+
+.ghost-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #4a90d9;
+  z-index: 100;
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+.ghost-line::before,
+.ghost-line::after {
+  content: "";
+  position: absolute;
+  left: -5px;
+  width: 0;
+  height: 0;
+  border-style: solid;
+}
+
+.ghost-left::before,
+.ghost-left::after {
+  border-width: 8px 5px 8px 0;
+  border-color: transparent #4a90d9 transparent transparent;
+}
+
+.ghost-left::before {
+  top: 0;
+}
+
+.ghost-left::after {
+  bottom: 0;
+}
+
+.ghost-right::before,
+.ghost-right::after {
+  border-width: 8px 0 8px 5px;
+  border-color: transparent transparent transparent #4a90d9;
+}
+
+.ghost-right::before {
+  top: 0;
+}
+
+.ghost-right::after {
+  bottom: 0;
 }
 </style>
